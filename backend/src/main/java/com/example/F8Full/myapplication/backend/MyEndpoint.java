@@ -6,6 +6,7 @@
 
 package com.example.F8Full.myapplication.backend;
 
+import com.example.F8Full.myapplication.backend.data.model.MyBean;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;

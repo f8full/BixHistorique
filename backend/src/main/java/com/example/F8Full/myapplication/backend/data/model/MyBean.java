@@ -1,4 +1,4 @@
-package com.example.F8Full.myapplication.backend;
+package com.example.F8Full.myapplication.backend.data.model;
 
 /**
  * The object model for the data we are sending through endpoints
