@@ -24,37 +24,43 @@ public class Network {
 
     //Constructed from the timestamp given in the XML file
     @PrimaryKey
-    Key mKEY_timestamp;
+    Key Key_timestamp;
 
     //Used internally for queries
     @Persistent
-    Date mDate_timestamp;
+    Date Date_timestamp;
+
 
     @Persistent
-    Map<Integer, StationProperties> mStationPropertieMap;   //Mapped by station ID
+    Map<Integer, StationProperties> stationPropertieMap;   //Mapped by station ID
 
     @Persistent
-    Map<Integer, AvailabilityRecord> mAvailabilityMap;  //Mapped by station ID
+    Map<Integer, AvailabilityRecord> availabilityMap;  //Mapped by station ID
 
     public Network(){
-        mStationPropertieMap = new Hashtable<>();
-        mAvailabilityMap = new Hashtable<>();
+
+        this(new Hashtable<Integer,StationProperties>(), new Hashtable<Integer,AvailabilityRecord>());
+    }
+
+    private Network(Map<Integer, StationProperties> propMap, Map<Integer, AvailabilityRecord> availMap) {
+        this.stationPropertieMap = propMap;
+        this.availabilityMap = availMap;
     }
 
     //in ms since epoch
-    public void setTimestamp(String _timestamp){
-        this.mKEY_timestamp = KeyFactory.createKey(Network.class.getSimpleName(), _timestamp);
+    public void setTimestamp(String timestamp){
+        this.Key_timestamp = KeyFactory.createKey(Network.class.getSimpleName(), timestamp);
 
-        mDate_timestamp = new Date(Long.parseLong(_timestamp));
+        Date_timestamp = new Date(Long.parseLong(timestamp));
     }
 
-    public void putStationProperties(int _key, StationProperties _value)
+    public void putStationProperties(int _key, StationProperties value)
     {
-        mStationPropertieMap.put(_key, _value);
+        stationPropertieMap.put(_key, value);
     }
 
-    public void putAvailabilityRecord(int _key, AvailabilityRecord _value)
+    public void putAvailabilityRecord(int _key, AvailabilityRecord value)
     {
-        mAvailabilityMap.put(_key, _value);
+        availabilityMap.put(_key, value);
     }
 }

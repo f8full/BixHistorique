@@ -16,35 +16,35 @@ import javax.jdo.annotations.PrimaryKey;
 public class AvailabilityRecord {
 
     @PrimaryKey
-    private Key mKey;
+    private Key key;
 
     @Persistent
     private
-    int mNbBikes;
+    int nbBikes;
 
     @Persistent
     private
-    int mNbEmptyDocks;
+    int nbEmptyDocks;
 
     //"NbBikes|NbEmptyDocks"
-    public void setKey(String _keyString){
-        mKey = KeyFactory.createKey(AvailabilityRecord.class.getSimpleName(), _keyString);
+    public void setKey(String keyString){
+        this.key = KeyFactory.createKey(AvailabilityRecord.class.getSimpleName(), keyString);
     }
 
 
     public int getNbBikes() {
-        return mNbBikes;
+        return nbBikes;
     }
 
     public void setNbBikes(int mNbBikes) {
-        this.mNbBikes = mNbBikes;
+        this.nbBikes = mNbBikes;
     }
 
     public int getNbEmptyDocks() {
-        return mNbEmptyDocks;
+        return nbEmptyDocks;
     }
 
     public void setNbEmptyDocks(int mNbDocks) {
-        this.mNbEmptyDocks = mNbDocks;
+        this.nbEmptyDocks = mNbDocks;
     }
 }

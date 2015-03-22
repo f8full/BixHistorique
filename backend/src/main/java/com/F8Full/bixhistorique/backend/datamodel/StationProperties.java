@@ -28,131 +28,132 @@ import javax.jdo.annotations.PrimaryKey;
 @PersistenceCapable
 public class StationProperties {
 
+    //Should I construct a key from the id + the timestamp and provide special accessors ?
     @PrimaryKey
-    Key mKEY_Timestamp;
+    Key Key_Timestamp;
 
     @Persistent
     private
-    int mID;
+    int id; //Guaranted to be unique in datasource and stable in a season at least
 
-    //Used internally for processing queries
+    //Used internally for processing time based queries
     @Persistent
-    Date mDate_Timestamp;
-
-    @Persistent
-    private
-    String mName;
+    Date Date_Timestamp;
 
     @Persistent
     private
-    String mTerminalName;
+    String name;
 
     @Persistent
     private
-    GeoPt mPos;
+    String terminalName;
 
     @Persistent
     private
-    boolean mInstalled;
+    GeoPt pos;
 
     @Persistent
     private
-    Date mInstallDate;
+    boolean installed;
 
     @Persistent
     private
-    Date mRemovalDate;
+    Date installDate;
 
     @Persistent
     private
-    boolean mLocked;
+    Date removalDate;
 
     @Persistent
     private
-    boolean mTemporary;
+    boolean locked;
 
     @Persistent
     private
-    boolean mPublic;
+    boolean temporary;
+
+    @Persistent
+    private
+    boolean mPublic;    //public is a keyword
 
 
     public int getID() {
-        return mID;
+        return id;
     }
 
     public void setID(int mID) {
-        this.mID = mID;
+        this.id = mID;
     }
 
     public String getName() {
-        return mName;
+        return name;
     }
 
-    public void setName(String mName) {
-        this.mName = mName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getTerminalName() {
-        return mTerminalName;
+        return terminalName;
     }
 
-    public void setTerminalName(String mTerminalName) {
-        this.mTerminalName = mTerminalName;
+    public void setTerminalName(String terminalName) {
+        this.terminalName = terminalName;
     }
 
     public GeoPt getPos() {
-        return mPos;
+        return pos;
     }
 
-    public void setPos(GeoPt mPos) {
-        this.mPos = mPos;
+    public void setPos(GeoPt pos) {
+        this.pos = pos;
     }
 
     public boolean isInstalled() {
-        return mInstalled;
+        return installed;
     }
 
-    public void setInstalled(boolean mInstalled) {
-        this.mInstalled = mInstalled;
+    public void setInstalled(boolean installed) {
+        this.installed = installed;
     }
 
     public Date getInstallDate() {
-        return mInstallDate;
+        return installDate;
     }
 
-    public void setInstallDate(Date mInstallDate) {
-        this.mInstallDate = mInstallDate;
+    public void setInstallDate(Date installDate) {
+        this.installDate = installDate;
     }
 
     public Date getRemovalDate() {
-        return mRemovalDate;
+        return removalDate;
     }
 
-    public void setRemovalDate(Date mRemovalDate) {
-        this.mRemovalDate = mRemovalDate;
+    public void setRemovalDate(Date removalDate) {
+        this.removalDate = removalDate;
     }
 
     public boolean isLocked() {
-        return mLocked;
+        return locked;
     }
 
-    public void setLocked(boolean mLocked) {
-        this.mLocked = mLocked;
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 
     public boolean isTemporary() {
-        return mTemporary;
+        return temporary;
     }
 
-    public void setTemporary(boolean mTemporary) {
-        this.mTemporary = mTemporary;
+    public void setTemporary(boolean temporary) {
+        this.temporary = temporary;
     }
 
     public boolean isPublic() {
         return mPublic;
-    }
+    }   //public is a keyword
 
-    public void setPublic(boolean mPublic) {
-        this.mPublic = mPublic;
-    }
+    public void setPublic(boolean _public) {
+        this.mPublic = _public;
+    } //public is a keyword
 }
