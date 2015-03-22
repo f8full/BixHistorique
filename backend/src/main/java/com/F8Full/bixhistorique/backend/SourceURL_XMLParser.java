@@ -1,8 +1,8 @@
-package com.example.F8Full.myapplication.backend;
+package com.F8Full.bixhistorique.backend;
 
-import com.example.F8Full.myapplication.backend.data.model.AvailabilityRecord;
-import com.example.F8Full.myapplication.backend.data.model.Network;
-import com.example.F8Full.myapplication.backend.data.model.StationProperties;
+import com.F8Full.bixhistorique.backend.datamodel.AvailabilityRecord;
+import com.F8Full.bixhistorique.backend.datamodel.Network;
+import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
 import com.google.appengine.api.datastore.GeoPt;
 
 import org.xml.sax.Attributes;

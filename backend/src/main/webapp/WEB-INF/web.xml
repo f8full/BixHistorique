@@ -5,12 +5,22 @@
         <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
         <init-param>
             <param-name>services</param-name>
-            <param-value>com.example.F8Full.myapplication.backend.MyEndpoint</param-value>
+            <param-value>com.F8Full.bixhistorique.backend.MyEndpoint</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>SystemServiceServlet</servlet-name>
         <url-pattern>/_ah/spi/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ParseCronServlet</servlet-name>
+        <servlet-class>com.F8Full.bixhistorique.backend.ParseCronServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ParseCronServlet</servlet-name>
+        <url-pattern>/cron/parsecronjob</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>

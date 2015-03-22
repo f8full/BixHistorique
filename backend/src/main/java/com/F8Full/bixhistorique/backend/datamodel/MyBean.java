@@ -1,4 +1,4 @@
-package com.example.F8Full.myapplication.backend.data.model;
+package com.F8Full.bixhistorique.backend.datamodel;
 
 /**
  * The object model for the data we are sending through endpoints

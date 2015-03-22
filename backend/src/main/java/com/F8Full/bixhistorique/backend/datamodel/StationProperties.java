@@ -1,4 +1,4 @@
-package com.example.F8Full.myapplication.backend.data.model;
+package com.F8Full.bixhistorique.backend.datamodel;
 
 import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
