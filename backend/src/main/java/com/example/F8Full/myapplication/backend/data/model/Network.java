@@ -1,8 +1,10 @@
 package com.example.F8Full.myapplication.backend.data.model;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Map;
 
 import javax.jdo.annotations.PersistenceCapable;
@@ -33,4 +35,26 @@ public class Network {
 
     @Persistent
     Map<Integer, AvailabilityRecord> mAvailabilityMap;  //Mapped by station ID
+
+    public Network(){
+        mStationPropertieMap = new Hashtable<>();
+        mAvailabilityMap = new Hashtable<>();
+    }
+
+    //in ms since epoch
+    public void setTimestamp(String _timestamp){
+        this.mKEY_timestamp = KeyFactory.createKey(Network.class.getSimpleName(), _timestamp);
+
+        mDate_timestamp = new Date(Long.parseLong(_timestamp));
+    }
+
+    public void putStationProperties(int _key, StationProperties _value)
+    {
+        mStationPropertieMap.put(_key, _value);
+    }
+
+    public void putAvailabilityRecord(int _key, AvailabilityRecord _value)
+    {
+        mAvailabilityMap.put(_key, _value);
+    }
 }
