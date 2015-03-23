@@ -1,8 +1,8 @@
 package com.F8Full.bixhistorique.backend.datamodel;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 
+import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
@@ -13,8 +13,10 @@ import javax.jdo.annotations.PrimaryKey;
  * Key is built from the concatenation of NbBikes and  NbEmptyDocks (ex : "3|5")
  * Those record are independent and not duplicated in the database
  */
+@PersistenceCapable
 public class AvailabilityRecord {
 
+    //key name will be in the form of "NbBikes|NbEmptyDocks"
     @PrimaryKey
     private Key key;
 
@@ -26,9 +28,11 @@ public class AvailabilityRecord {
     private
     int nbEmptyDocks;
 
-    //"NbBikes|NbEmptyDocks"
-    public void setKey(String keyString){
-        this.key = KeyFactory.createKey(AvailabilityRecord.class.getSimpleName(), keyString);
+    //fully constructed as "NbBikes|NbEmptyDocks"
+    public void setKey(Key fullKey){
+        //this.key = KeyFactory.createKey(AvailabilityRecord.class.getSimpleName(), keyString);
+        //JSON serializing forbids complex setter (KeyFactory is external)
+        this.key = fullKey;
     }
 
 
@@ -46,5 +50,9 @@ public class AvailabilityRecord {
 
     public void setNbEmptyDocks(int mNbDocks) {
         this.nbEmptyDocks = mNbDocks;
+    }
+
+    public Key getKey(){
+        return this.key;
     }
 }

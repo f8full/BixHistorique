@@ -1,12 +1,12 @@
 package com.F8Full.bixhistorique.backend.datamodel;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
+import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
@@ -22,7 +22,7 @@ import javax.jdo.annotations.PrimaryKey;
 @PersistenceCapable
 public class Network {
 
-    //Constructed from the timestamp given in the XML file
+    //Constructed from the timestamp
     @PrimaryKey
     Key Key_timestamp;
 
@@ -31,36 +31,79 @@ public class Network {
     Date Date_timestamp;
 
 
+    //Implementing relationship with StationProperties
     @Persistent
-    Map<Integer, StationProperties> stationPropertieMap;   //Mapped by station ID
+    Map<Integer, Key> stationPropertieKeyMap;   //Mapped by station ID
 
+    //Implementing relationship with AvailabilityRecord
     @Persistent
-    Map<Integer, AvailabilityRecord> availabilityMap;  //Mapped by station ID
+    Map<Integer, Key> availabilityKeyMap;  //Mapped by station ID
+
+    //Filled at parsing time
+    //Relationships are unowned, hence entities must be persisted independently
+    //we will choose only the pertinent ones
+    @NotPersistent
+    public Map<Integer, StationProperties> stationPropertieMap = new Hashtable<>();  //Mapped by station ID
+    @NotPersistent
+    public Map<Integer, AvailabilityRecord> availabilityMap = new Hashtable<>();  //Mapped by station ID
+
+    //The two following maps are not in StationProperties because they are way less
+    //stable in time than the other property of a station (name, position...)
+    //Because one Network object will be persisted each time new data is available in the feed
+    //it seems to be the right place to put those timestamps
+    @Persistent
+    Map<Integer, Long> latestUpdateTimeMap;  //Mapped by station ID
+    @Persistent
+    Map<Integer, Long> lastCommWithServerMap;  //Mapped by station ID
 
     public Network(){
 
-        this(new Hashtable<Integer,StationProperties>(), new Hashtable<Integer,AvailabilityRecord>());
+        this(new Hashtable<Integer,Key>(), new Hashtable<Integer,Key>(),
+                new Hashtable<Integer,Long>(), new Hashtable<Integer,Long>());
     }
 
-    private Network(Map<Integer, StationProperties> propMap, Map<Integer, AvailabilityRecord> availMap) {
-        this.stationPropertieMap = propMap;
-        this.availabilityMap = availMap;
+    private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap,
+                    Map<Integer, Long> updateTimeMap, Map<Integer, Long> commWithServerTimeMap) {
+        this.stationPropertieKeyMap = propMap;
+        this.availabilityKeyMap = availMap;
+        this.latestUpdateTimeMap = updateTimeMap;
+        this.lastCommWithServerMap = commWithServerTimeMap;
     }
 
-    //in ms since epoch
-    public void setTimestamp(String timestamp){
-        this.Key_timestamp = KeyFactory.createKey(Network.class.getSimpleName(), timestamp);
+    //constructed from timestamp string, in ms since epoch
+    public void setTimestamp(Key Key_timestamp){
+        //this.Key_timestamp = KeyFactory.createKey(Network.class.getSimpleName(), timestamp);
+        //JSON serializing forbids complex setter (KeyFactory is external)
+        this.Key_timestamp = Key_timestamp;
+        Date_timestamp = new Date(Long.parseLong(Key_timestamp.getName()));
+    }
 
-        Date_timestamp = new Date(Long.parseLong(timestamp));
+    public long getTimestamp(){
+        return Long.parseLong(this.Key_timestamp.getName());
     }
 
     public void putStationProperties(int _key, StationProperties value)
     {
-        stationPropertieMap.put(_key, value);
+        this.stationPropertieMap.put(_key, value);
+
+        this.stationPropertieKeyMap.put(_key, value.getKey());
+        //value.addNetworkParentKey(this.Key_timestamp);
     }
 
     public void putAvailabilityRecord(int _key, AvailabilityRecord value)
     {
-        availabilityMap.put(_key, value);
+        this.availabilityMap.put(_key, value);
+
+        this.availabilityKeyMap.put(_key, value.getKey());
+    }
+
+    public void putLatestUpdateTime(int stationId, long timestamp)
+    {
+        this.latestUpdateTimeMap.put(stationId,timestamp);
+    }
+
+    public void putLastCommWithServer(int stationId, long timestamp)
+    {
+        this.lastCommWithServerMap.put(stationId, timestamp);
     }
 }

@@ -30,7 +30,8 @@ public class StationProperties {
 
     //Should I construct a key from the id + the timestamp and provide special accessors ?
     @PrimaryKey
-    Key Key_Timestamp;
+    Key key;    //"id|timestamp" timestamp is the same timestamp as the oldest (first) Network entity
+    //referencing this StationProperties entity
 
     @Persistent
     private
@@ -77,7 +78,7 @@ public class StationProperties {
     boolean mPublic;    //public is a keyword
 
 
-    public int getID() {
+    public int getId() {
         return id;
     }
 
@@ -156,4 +157,25 @@ public class StationProperties {
     public void setPublic(boolean _public) {
         this.mPublic = _public;
     } //public is a keyword
+
+    public void setDate_Timestamp(Date timestamp){
+        this.Date_Timestamp = timestamp;
+    }
+
+    public Key getKey(){
+        return this.key;
+    }
+
+    //"id|timestamp"
+    public void setKey(Key fullKey)
+    {
+        //this.key = KeyFactory.createKey(StationProperties.class.getSimpleName(), "");
+        //JSON serializing forbids complex setter (KeyFactory is external)
+        this.key = fullKey;
+
+        //id MUST be set before key, or big troubles are ahead
+        String timestamp = fullKey.getName().substring(Integer.toString(this.id).length()+ "|".length());    //in ms from epoch
+        this.Date_Timestamp = new Date(Long.parseLong(timestamp));
+
+    }
 }

@@ -4,6 +4,7 @@ import com.F8Full.bixhistorique.backend.datamodel.AvailabilityRecord;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
 import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
 import com.google.appengine.api.datastore.GeoPt;
+import com.google.appengine.api.datastore.KeyFactory;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -100,13 +101,18 @@ public class SourceURL_XMLParser extends DefaultHandler{
 
         if (_elementName.equalsIgnoreCase("stations"))
         {
-            //TODO: validate XML version here and throw exception
-            //extract timestamp of data source
-            mNetworkToReturn.setTimestamp(_attributes.getValue("lastUpdate"));
+            //TODO: validate XML feed version here and throw exception
+            //extract timestamp of data source and builds key from it
+            mNetworkToReturn.setTimestamp( KeyFactory.createKey( Network.class.getSimpleName(),
+                                                            _attributes.getValue("lastUpdate") ) );
         }
         else if (_elementName.equalsIgnoreCase("station"))
         {
             mTempStationProperties = new StationProperties();
+            mTempStationProperties.setDate_Timestamp(new Date(mNetworkToReturn.getTimestamp()));
+
+            //The key is set when reading availability
+            //"nbBikes|nbEmptyDocks"
             mTempAvailabilityRecord = new AvailabilityRecord();
         }
     }
@@ -125,6 +131,11 @@ public class SourceURL_XMLParser extends DefaultHandler{
         else if (_element.equalsIgnoreCase("terminalName"))
         {
             mTempStationProperties.setTerminalName(mBufferedString.toString());
+        }
+        else if (_element.equalsIgnoreCase("lastCommWithServer"))
+        {
+            //SAX guarantees setID will have been called before executing this
+            mNetworkToReturn.putLastCommWithServer(mTempStationProperties.getId(), Long.parseLong(mBufferedString.toString()));
         }
         else if (_element.equalsIgnoreCase("lat"))
         {
@@ -172,13 +183,23 @@ public class SourceURL_XMLParser extends DefaultHandler{
         {
             mTempAvailabilityRecord.setNbEmptyDocks(Integer.parseInt(mBufferedString.toString()));
 
-            mTempAvailabilityRecord.setKey(Integer.toString(mTempAvailabilityRecord.getNbBikes())
-                    + "|" + mBufferedString.toString());
+            mTempAvailabilityRecord.setKey( KeyFactory.createKey( AvailabilityRecord.class.getSimpleName(),
+                    Integer.toString(mTempAvailabilityRecord.getNbBikes())
+                            + "|" + mBufferedString.toString() ) );
+        }
+        else if (_element.equalsIgnoreCase("latestUpdateTime"))
+        {
+            //Sax guarantees parsing occurs in order, because this function MUST be called after setID()
+            mNetworkToReturn.putLatestUpdateTime(mTempStationProperties.getId(), Long.parseLong(mBufferedString.toString()));
+            //TODO: see for a better way to handle this while respecting JSON serialization constraint (simple setter)
+            mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
+                    Integer.toString(mTempStationProperties.getId())
+                            + "|" + mBufferedString.toString() ) );
         }
         else if (_element.equalsIgnoreCase("station"))
         {
-            mNetworkToReturn.putStationProperties(mTempStationProperties.getID(), mTempStationProperties);
-            mNetworkToReturn.putAvailabilityRecord(mTempStationProperties.getID(), mTempAvailabilityRecord);
+            mNetworkToReturn.putStationProperties(mTempStationProperties.getId(), mTempStationProperties);
+            mNetworkToReturn.putAvailabilityRecord(mTempStationProperties.getId(), mTempAvailabilityRecord);
         }
     }
 
