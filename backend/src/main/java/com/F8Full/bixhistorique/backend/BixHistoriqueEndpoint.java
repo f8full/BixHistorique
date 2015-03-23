@@ -6,13 +6,15 @@
 
 package com.F8Full.bixhistorique.backend;
 
-import com.F8Full.bixhistorique.backend.datamodel.LastNetworkRecordTimestamp;
+import com.F8Full.bixhistorique.backend.datamodel.LastNetworkTimeData;
 import com.F8Full.bixhistorique.backend.datamodel.MyBean;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
+import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
 import com.F8Full.bixhistorique.backend.datautils.PMF;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.appengine.api.datastore.KeyFactory;
 
 import org.json.JSONObject;
 
@@ -50,12 +52,22 @@ public class BixHistoriqueEndpoint {
         //This is a read only copy of the network currently described by the data source
         final Network initialNetwork = parser.parse();
 
-        //Initial parse : we have to setup a new LastNetworkRecordTimestamp entity
+        //Initial parse : we have to setup a new LastNetworkTimeData entity
         //There will always be only one entity of that kind in the datastore
         //it will be updated each time a new Network object is persisted in the datastore
         //(every time except when data source down OR lastUpdate attribute of <stations> XML tag didn't change)
-        LastNetworkRecordTimestamp networkLastTimestamp = new LastNetworkRecordTimestamp(initialNetwork.getTimestamp());
+        LastNetworkTimeData networkTimeData = new LastNetworkTimeData(initialNetwork.getTimestamp());
 
+        //Copy latestUpdateTime data from each StationProperties to the LastNetworkTimeData object
+        //Update key to store the timestamp of the Network object (oldest one referring this particular StationProperties)
+        for(int stationId : initialNetwork.stationPropertieMap.keySet())
+        {
+            networkTimeData.putLatestUpdateTime(stationId, initialNetwork.stationPropertieMap.get(stationId).getTimestamp());
+
+            initialNetwork.stationPropertieMap.get(stationId).setKey(
+                    KeyFactory.createKey(StationProperties.class.getSimpleName(),
+                            stationId + "|" + initialNetwork.getTimestamp()));
+        }
 
         PersistenceManager pm = PMF.get().getPersistenceManager();
 
@@ -66,18 +78,18 @@ public class BixHistoriqueEndpoint {
             pm.makePersistentAll(initialNetwork.availabilityMap.values());
             pm.makePersistentAll(initialNetwork.stationPropertieMap.values());
 
-            /*for (AvailabilityRecord avail : initialNetwork.availabilityMap.values())
+            /*for (AvailabilityRecord avail : outNetwork.availabilityMap.values())
             {
                 //We could check if it is in datastore already by querying by key
                 //otherwise we will overwrite the already persisted object
                 pm.makePersistent(avail);
             }
-            for (StationProperties prop : initialNetwork.stationPropertieMap.values())
+            for (StationProperties prop : outNetwork.stationPropertieMap.values())
             {
                 pm.makePersistent(prop)
             }*/
             pm.makePersistent(initialNetwork);
-            pm.makePersistent(networkLastTimestamp);
+            pm.makePersistent(networkTimeData);
         }finally {
             pm.close();
         }

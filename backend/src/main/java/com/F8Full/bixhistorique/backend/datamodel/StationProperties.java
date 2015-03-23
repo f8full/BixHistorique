@@ -178,4 +178,8 @@ public class StationProperties {
         this.Date_Timestamp = new Date(Long.parseLong(timestamp));
 
     }
+
+    public long getTimestamp(){
+        return Long.parseLong(this.key.getName().substring(Integer.toString(this.id).length()+ "|".length()));    //in ms from epoch
+    }
 }

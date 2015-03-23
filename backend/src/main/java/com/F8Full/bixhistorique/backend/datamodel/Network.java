@@ -51,23 +51,15 @@ public class Network {
     //stable in time than the other property of a station (name, position...)
     //Because one Network object will be persisted each time new data is available in the feed
     //it seems to be the right place to put those timestamps
-    @Persistent
-    Map<Integer, Long> latestUpdateTimeMap;  //Mapped by station ID
-    @Persistent
-    Map<Integer, Long> lastCommWithServerMap;  //Mapped by station ID
 
     public Network(){
 
-        this(new Hashtable<Integer,Key>(), new Hashtable<Integer,Key>(),
-                new Hashtable<Integer,Long>(), new Hashtable<Integer,Long>());
+        this(new Hashtable<Integer,Key>(), new Hashtable<Integer,Key>());
     }
 
-    private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap,
-                    Map<Integer, Long> updateTimeMap, Map<Integer, Long> commWithServerTimeMap) {
+    private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap) {
         this.stationPropertieKeyMap = propMap;
         this.availabilityKeyMap = availMap;
-        this.latestUpdateTimeMap = updateTimeMap;
-        this.lastCommWithServerMap = commWithServerTimeMap;
     }
 
     //constructed from timestamp string, in ms since epoch
@@ -97,13 +89,4 @@ public class Network {
         this.availabilityKeyMap.put(_key, value.getKey());
     }
 
-    public void putLatestUpdateTime(int stationId, long timestamp)
-    {
-        this.latestUpdateTimeMap.put(stationId,timestamp);
-    }
-
-    public void putLastCommWithServer(int stationId, long timestamp)
-    {
-        this.lastCommWithServerMap.put(stationId, timestamp);
-    }
 }

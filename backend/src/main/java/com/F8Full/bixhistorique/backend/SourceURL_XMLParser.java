@@ -70,6 +70,11 @@ public class SourceURL_XMLParser extends DefaultHandler{
         mIs.setEncoding("UTF-8");
     }
 
+    //This returns a complete Network object representing the XML data source
+    //Note : the latestUpdateTime of each station is stored in the corresponding StationProperties
+    //This is to pass along the data to the processing code
+    //When a StationProperties entity is persisted, the stored timestamp corresponds to
+    //the timestamp of the oldest Network entity referring it
     public Network parse()
     {
         //URL url = new URL("http://www.example.com/atom.xml");
@@ -132,11 +137,12 @@ public class SourceURL_XMLParser extends DefaultHandler{
         {
             mTempStationProperties.setTerminalName(mBufferedString.toString());
         }
-        else if (_element.equalsIgnoreCase("lastCommWithServer"))
+        //dropped
+        /*else if (_element.equalsIgnoreCase("lastCommWithServer"))
         {
             //SAX guarantees setID will have been called before executing this
-            mNetworkToReturn.putLastCommWithServer(mTempStationProperties.getId(), Long.parseLong(mBufferedString.toString()));
-        }
+            //mNetworkToReturn.putLastCommWithServer(mTempStationProperties.getId(), Long.parseLong(mBufferedString.toString()));
+        }*/
         else if (_element.equalsIgnoreCase("lat"))
         {
             mTempLat = Float.parseFloat(mBufferedString.toString());
@@ -190,11 +196,12 @@ public class SourceURL_XMLParser extends DefaultHandler{
         else if (_element.equalsIgnoreCase("latestUpdateTime"))
         {
             //Sax guarantees parsing occurs in order, because this function MUST be called after setID()
-            mNetworkToReturn.putLatestUpdateTime(mTempStationProperties.getId(), Long.parseLong(mBufferedString.toString()));
-            //TODO: see for a better way to handle this while respecting JSON serialization constraint (simple setter)
+
+            //This is to pass along the data to the processing code
+            //When a StationProperties entity is persisted, the stored timestamp corresponds to
+            //the timestamp of the oldest Network entity referring it
             mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
-                    Integer.toString(mTempStationProperties.getId())
-                            + "|" + mBufferedString.toString() ) );
+                    mTempStationProperties.getId() + "|" + mBufferedString.toString() ) );
         }
         else if (_element.equalsIgnoreCase("station"))
         {
