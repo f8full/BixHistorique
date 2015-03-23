@@ -200,8 +200,19 @@ public class SourceURL_XMLParser extends DefaultHandler{
             //This is to pass along the data to the processing code
             //When a StationProperties entity is persisted, the stored timestamp corresponds to
             //the timestamp of the oldest Network entity referring it
-            mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
-                    mTempStationProperties.getId() + "|" + mBufferedString.toString() ) );
+
+            //empty lastUpdateTime in feed must be trimmed out
+            if (!mBufferedString.toString().isEmpty())
+            {
+                mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
+                        mTempStationProperties.getId() + "|" + mBufferedString.toString() ) );
+            }
+            else
+            {
+                mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
+                        mTempStationProperties.getId() + "|0" ) );
+            }
+
         }
         else if (_element.equalsIgnoreCase("station"))
         {
