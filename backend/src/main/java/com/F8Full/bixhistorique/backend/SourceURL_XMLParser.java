@@ -11,6 +11,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -62,7 +63,7 @@ public class SourceURL_XMLParser extends DefaultHandler{
     float mTempLat;
 
     public SourceURL_XMLParser(String _url) throws IOException {
-        mNetworkToReturn = new Network();
+        mNetworkToReturn = new Network(null, null);
 
         URL url = new URL(_url);
 
@@ -91,6 +92,30 @@ public class SourceURL_XMLParser extends DefaultHandler{
             SAXParser parser = factory.newSAXParser();
 
             parser.parse(mIs, this);
+
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return mNetworkToReturn;
+    }
+
+    public Network parseFile(String filePath)
+    {
+        //URL url = new URL("http://www.example.com/atom.xml");
+        //new InputStreamReader(url.openStream())
+
+        //FileInputStream stream = new FileInputStream("WEB-INF/xml/wordsDictionary.xml");
+        //InputSource is = new InputSource(new InputStreamReader(stream, "UTF-8"));
+        //is.setEncoding("UTF-8");
+        //reader.parse(is);
+
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            //factory.setNamespaceAware(true);
+            SAXParser parser = factory.newSAXParser();
+
+            parser.parse(new File(filePath),this);
 
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();

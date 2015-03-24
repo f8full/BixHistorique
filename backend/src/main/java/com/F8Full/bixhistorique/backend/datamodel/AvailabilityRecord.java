@@ -28,6 +28,18 @@ public class AvailabilityRecord {
     private
     int nbEmptyDocks;
 
+    public AvailabilityRecord(){}
+
+    //Key as "nbBikes|nbEmptyDocks"
+    public AvailabilityRecord(Key key)
+    {
+        String[] numbers = key.getName().split("\\|");
+
+        this.nbBikes = Integer.parseInt(numbers[0]);
+        this.nbEmptyDocks = Integer.parseInt(numbers[1]);
+        this.key = key;
+    }
+
     //fully constructed as "NbBikes|NbEmptyDocks"
     public void setKey(Key fullKey){
         //this.key = KeyFactory.createKey(AvailabilityRecord.class.getSimpleName(), keyString);

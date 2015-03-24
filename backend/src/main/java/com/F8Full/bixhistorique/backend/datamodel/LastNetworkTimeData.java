@@ -2,6 +2,7 @@ package com.F8Full.bixhistorique.backend.datamodel;
 
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -29,7 +30,7 @@ public class LastNetworkTimeData {
     private long timestamp;
 
     @Persistent
-    Map<Integer, Long> latestUpdateTimeMap;  //Mapped by station ID
+    Map<Long, Long> latestUpdateTimeMap;  //Mapped by station ID
 
     private LastNetworkTimeData(){}
 
@@ -46,8 +47,23 @@ public class LastNetworkTimeData {
         return timestamp;
     }
 
-    public void putLatestUpdateTime(int stationId, long timestamp)
+    public void setEncodedKey(String encodedKey){
+        this.encodedKey = encodedKey;
+    }
+
+
+    public void putLatestUpdateTime(long stationId, long timestamp)
     {
         this.latestUpdateTimeMap.put(stationId,timestamp);
+    }
+
+    public Set<Long> getLatestUpdateMapKeySet()
+    {
+        return latestUpdateTimeMap.keySet();
+    }
+
+    public long getLatestUpdateTimeForStationId(long stationId)
+    {
+        return latestUpdateTimeMap.get(stationId);
     }
 }

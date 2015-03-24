@@ -24,20 +24,23 @@ public class Network {
 
     //Constructed from the timestamp
     @PrimaryKey
-    Key Key_timestamp;
+    private Key Key_timestamp;
 
     //Used internally for queries
     @Persistent
-    Date Date_timestamp;
+    private Date Date_timestamp;
 
 
     //Implementing relationship with StationProperties
     @Persistent
-    Map<Integer, Key> stationPropertieKeyMap;   //Mapped by station ID
+    private Map<Integer, Key> stationPropertieKeyMap;   //Mapped by station ID
 
     //Implementing relationship with AvailabilityRecord
     @Persistent
-    Map<Integer, Key> availabilityKeyMap;  //Mapped by station ID
+    private Map<Integer, Key> availabilityKeyMap;  //Mapped by station ID
+
+    @Persistent
+    private Key previousNetworkKey;
 
     //Filled at parsing time
     //Relationships are unowned, hence entities must be persisted independently
@@ -52,15 +55,22 @@ public class Network {
     //Because one Network object will be persisted each time new data is available in the feed
     //it seems to be the right place to put those timestamps
 
-    public Network(){
+    public Network(Key currentKey, Key previousKey){
 
-        this(new Hashtable<Integer,Key>(), new Hashtable<Integer,Key>());
+        this(new Hashtable<Integer,Key>(), new Hashtable<Integer,Key>(), currentKey, previousKey);
     }
 
-    private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap) {
+    private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap, Key curKey, Key prevKey) {
         this.stationPropertieKeyMap = propMap;
         this.availabilityKeyMap = availMap;
+        this.Key_timestamp = curKey;
+        this.previousNetworkKey = prevKey;
     }
+
+    public Key getKey(){
+        return this.Key_timestamp;
+    }
+
 
     //constructed from timestamp string, in ms since epoch
     public void setTimestamp(Key Key_timestamp){
@@ -88,5 +98,18 @@ public class Network {
 
         this.availabilityKeyMap.put(_key, value.getKey());
     }
+
+    public Key getPreviousNetworkKey(){
+        return this.previousNetworkKey;
+    }
+
+    public boolean keyMapContains(int stationId){
+        return availabilityKeyMap.containsKey(stationId);
+    }
+
+    public Key getAvailabilityRecordKeyForStation(int stationId){
+        return availabilityKeyMap.get(stationId);
+    }
+
 
 }
