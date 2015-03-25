@@ -147,6 +147,10 @@ public class ParseCronServlet extends HttpServlet{
                     Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "Complete Network persisted");
                     parseData.setBiggestGap(0);
                 }
+                else
+                {
+                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "Biggest gap : " + parseData.getBiggestGap());
+                }
 
                 //If this raises an exception, big troubles are ahead
                 pm.makePersistent(parseData);
