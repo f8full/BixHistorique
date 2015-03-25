@@ -1,7 +1,7 @@
 package com.F8Full.bixhistorique.backend;
 
 import com.F8Full.bixhistorique.backend.datamodel.AvailabilityPair;
-import com.F8Full.bixhistorique.backend.datamodel.LastNetworkTimeData;
+import com.F8Full.bixhistorique.backend.datamodel.LastParseData;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
 import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
 import com.F8Full.bixhistorique.backend.datautils.PMF;
@@ -58,7 +58,7 @@ public class ParseCronServlet extends HttpServlet{
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
         //First, retrieve data about the last recording
-        Query lastTimeDataQuery = new Query(LastNetworkTimeData.class.getSimpleName());
+        Query lastTimeDataQuery = new Query(LastParseData.class.getSimpleName());
         PreparedQuery pq = datastore.prepare(lastTimeDataQuery);
 
         Entity result = pq.asSingleEntity();
@@ -66,26 +66,30 @@ public class ParseCronServlet extends HttpServlet{
         //Most common case (hopefully)
         if (result != null)
         {
-            LastNetworkTimeData timeData = new LastNetworkTimeData((Long)result.getProperty("timestamp"));
+            LastParseData parseData = new LastParseData((Long)result.getProperty("timestamp"));
 
             //Check if the source file timestamp is different from the last processed one
-            if (timeData.getTimestamp() == curNetwork.getTimestamp())
+            if (parseData.getTimestamp() == curNetwork.getTimestamp())
             {
                 Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "unchanged Network -- Done");
                 return;
             }
 
-            timeData.setEncodedKey(KeyFactory.keyToString(result.getKey()));
+            //If one station stayed untouched for an hour at a 5 minutes parse interval
+            boolean needCompleteRecord = (Long) result.getProperty("biggestGap") > 12;
+
+            //So that there will always be only one LastParseData entity in datastore
+            parseData.setEncodedKey(KeyFactory.keyToString(result.getKey()));
 
             ArrayList<Long> rawMap = (ArrayList)result.getProperty("latestUpdateTimeMap");
 
             for (int i=0; i< rawMap.size()-1; i+=2)
             {
-                timeData.putLatestUpdateTime(rawMap.get(i), rawMap.get(i + 1));
+                parseData.putLatestUpdateTime(rawMap.get(i), rawMap.get(i + 1));
             }
 
             Key previousNetworkKey = KeyFactory.createKey( Network.class.getSimpleName(),
-                    String.valueOf(timeData.getTimestamp()) );
+                    String.valueOf(parseData.getTimestamp()) );
 
             Key resultNetworkKey = curNetwork.getKey();
 
@@ -95,36 +99,44 @@ public class ParseCronServlet extends HttpServlet{
             PersistenceManager pm = PMF.get().getPersistenceManager();
 
             //Go through all stations and checks if latestUpdateTime changed
-            for (long stationId : timeData.getLatestUpdateMapKeySet())
+            for (long stationId : parseData.getLatestUpdateMapKeySet())
             {
-                long previousLatest = timeData.getLatestUpdateTimeForStationId(stationId);
+                long previousLatest = parseData.getLatestUpdateTimeForStationId(stationId);
 
                 long currentLatest = curNetwork.stationPropertieTransientMap.get((int)stationId).getTimestamp();
 
-                //Some new data available for this station
-                if (previousLatest != currentLatest)
+                //We want a complete record OR some new data available for this station
+                if (needCompleteRecord || previousLatest != currentLatest)
                 {
-                    //Record it for next processing
-                    timeData.putLatestUpdateTime(stationId, currentLatest);
-
+                    //Update it for next processing
+                    parseData.putLatestUpdateTime(stationId, currentLatest);
 
                     Network prevNetwork = pm.getObjectById(Network.class, previousNetworkKey);
 
-                    AvailabilityPair prevAvailability = retrievePreviousAvailability(prevNetwork, (int)stationId, pm);
+                    int depthCounter = 0;
+
+                    AvailabilityPair prevAvailability = retrievePreviousAvailability(prevNetwork, (int)stationId, depthCounter, parseData, pm);
                     AvailabilityPair currAvailability = curNetwork.getAvailabilityForStation((int)stationId);
 
-                    if (!(prevAvailability.nbBikes == currAvailability.nbBikes && prevAvailability.nbEmptyDocks == currAvailability.nbEmptyDocks))
+                    if (needCompleteRecord || !(prevAvailability.nbBikes == currAvailability.nbBikes && prevAvailability.nbEmptyDocks == currAvailability.nbEmptyDocks))
                     {
                         resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
                     }
                 }
             }
 
-            timeData.setTimestamp(curNetwork.getTimestamp());
+            parseData.setTimestamp(curNetwork.getTimestamp());
 
             try{
                 pm.makePersistent(resultNetwork);
-                pm.makePersistent(timeData);
+
+                if(needCompleteRecord) {
+                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "Complete Network persisted");
+                    parseData.setBiggestGap(0);
+                }
+
+                //If this raises an exception, big troubles are ahead
+                pm.makePersistent(parseData);
 
             }finally {
                 pm.close();
@@ -165,7 +177,7 @@ public class ParseCronServlet extends HttpServlet{
         //There will always be only one entity of that kind in the datastore
         //it will be updated each time a new Network object is persisted in the datastore
         //(every time except when data source down OR lastUpdate attribute of <stations> XML tag didn't change)
-        LastNetworkTimeData networkTimeData = new LastNetworkTimeData(initialNetwork.getTimestamp());
+        LastParseData networkTimeData = new LastParseData(initialNetwork.getTimestamp());
 
         //Copy latestUpdateTime data from each StationProperties to the LastNetworkTimeData object
         //Update key to store the timestamp of the Network object (oldest one referring this particular StationProperties)
@@ -193,7 +205,7 @@ public class ParseCronServlet extends HttpServlet{
         }
     }
 
-    private AvailabilityPair<Integer, Integer> retrievePreviousAvailability(Network curStep, int stationId, PersistenceManager pm)
+    private AvailabilityPair<Integer, Integer> retrievePreviousAvailability(Network curStep, int stationId, int depthCounter, LastParseData parseData, PersistenceManager pm)
     {
         if (!curStep.areAvailibilityMapNull() && curStep.availabilityMapContains(stationId))
             return curStep.getAvailabilityForStation(stationId);
@@ -201,11 +213,15 @@ public class ParseCronServlet extends HttpServlet{
         {
             if (curStep.getPreviousNetworkKey() == null)
             {
-                Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't retrieve previous avalability for stationId : " + stationId);
+                Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't retrieve previous availability for stationId : " + stationId);
             }
             else
             {
-                return retrievePreviousAvailability(pm.getObjectById(Network.class, curStep.getPreviousNetworkKey()), stationId, pm);
+                ++depthCounter;
+                if(depthCounter > parseData.getBiggestGap())
+                    parseData.setBiggestGap(depthCounter);    //Keeping track of the max depth
+
+                return retrievePreviousAvailability(pm.getObjectById(Network.class, curStep.getPreviousNetworkKey()), stationId, depthCounter, parseData, pm);
             }
         }
         return null;

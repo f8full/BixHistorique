@@ -19,7 +19,7 @@ import javax.jdo.annotations.PrimaryKey;
  *
  */
 @PersistenceCapable
-public class LastNetworkTimeData {
+public class LastParseData {
 
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
@@ -32,12 +32,21 @@ public class LastNetworkTimeData {
     @Persistent
     Map<Long, Long> latestUpdateTimeMap;  //Mapped by station ID
 
-    private LastNetworkTimeData(){}
+    @Persistent
+    private int biggestGap;
+    //Retains the max number of read that have been required to retrieve the availability of a
+    //station. Baed on that, we will choose to generate a full Network instead of an incremental one
+    //This will reduce the number of read required to rebuilt availability at any given time
+    //at the cost of more writes when not many stations are used
 
-    public LastNetworkTimeData(long timestamp)
+
+    private LastParseData(){ this.biggestGap = 0;}
+
+    public LastParseData(long timestamp)
     {
         this.timestamp = timestamp;
         this.latestUpdateTimeMap = new Hashtable<>();
+        this.biggestGap = 0;
     }
 
     public void setTimestamp(long timestamp) {
@@ -66,4 +75,14 @@ public class LastNetworkTimeData {
     {
         return latestUpdateTimeMap.get(stationId);
     }
+
+    public void setBiggestGap(int gap){
+        this.biggestGap = gap;
+    }
+
+    public int getBiggestGap(){
+        return this.biggestGap;
+    }
+
+
 }
