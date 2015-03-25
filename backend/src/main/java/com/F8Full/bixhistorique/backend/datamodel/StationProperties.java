@@ -30,7 +30,7 @@ public class StationProperties {
 
     //Should I construct a key from the id + the timestamp and provide special accessors ?
     @PrimaryKey
-    Key key;    //"id|timestamp" timestamp is the same timestamp as the oldest (first) Network entity
+    Key key;    //"id|timestamp"
     //referencing this StationProperties entity
 
     @Persistent
@@ -180,6 +180,6 @@ public class StationProperties {
     }
 
     public long getTimestamp(){
-        return Long.parseLong(this.key.getName().substring(Integer.toString(this.id).length()+ "|".length()));    //in ms from epoch
+        return Long.parseLong(this.key.getName().substring(Integer.toString(this.id).length() + "|".length()));    //in ms from epoch
     }
 }

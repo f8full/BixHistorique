@@ -28,16 +28,14 @@ public class Network {
 
     //Used internally for queries
     @Persistent
-    private Date Date_timestamp;
+    private Date Date_timestampUTC;
 
 
-    //Implementing relationship with StationProperties
     @Persistent
-    private Map<Integer, Key> stationPropertieKeyMap;   //Mapped by station ID
+    private Map<Integer, Integer> nbBikesByStationId;
 
-    //Implementing relationship with AvailabilityRecord
     @Persistent
-    private Map<Integer, Key> availabilityKeyMap;  //Mapped by station ID
+    private Map<Integer, Integer> nbEmptyDocksByStationId;
 
     @Persistent
     private Key previousNetworkKey;
@@ -46,9 +44,7 @@ public class Network {
     //Relationships are unowned, hence entities must be persisted independently
     //we will choose only the pertinent ones
     @NotPersistent
-    public Map<Integer, StationProperties> stationPropertieMap = new Hashtable<>();  //Mapped by station ID
-    @NotPersistent
-    public Map<Integer, AvailabilityRecord> availabilityMap = new Hashtable<>();  //Mapped by station ID
+    public Map<Integer, StationProperties> stationPropertieTransientMap = new Hashtable<>();  //Mapped by station ID
 
     //The two following maps are not in StationProperties because they are way less
     //stable in time than the other property of a station (name, position...)
@@ -57,12 +53,12 @@ public class Network {
 
     public Network(Key currentKey, Key previousKey){
 
-        this(new Hashtable<Integer,Key>(), new Hashtable<Integer,Key>(), currentKey, previousKey);
+        this(new Hashtable<Integer,Integer>(), new Hashtable<Integer,Integer>(), currentKey, previousKey);
     }
 
-    private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap, Key curKey, Key prevKey) {
-        this.stationPropertieKeyMap = propMap;
-        this.availabilityKeyMap = availMap;
+    private Network(Map<Integer, Integer> bikesMap, Map<Integer, Integer> docksMap, Key curKey, Key prevKey) {
+        this.nbBikesByStationId = bikesMap;
+        this.nbEmptyDocksByStationId = docksMap;
         setTimestamp(curKey);
         this.previousNetworkKey = prevKey;
     }
@@ -78,7 +74,7 @@ public class Network {
         //JSON serializing forbids complex setter (KeyFactory is external)
         this.Key_timestamp = Key_timestamp;
         if (Key_timestamp != null)  //Happens at construction
-            Date_timestamp = new Date(Long.parseLong(Key_timestamp.getName()));
+            Date_timestampUTC = new Date(Long.parseLong(Key_timestamp.getName()));
     }
 
     public long getTimestamp(){
@@ -87,34 +83,30 @@ public class Network {
 
     public void putStationProperties(int _key, StationProperties value)
     {
-        this.stationPropertieMap.put(_key, value);
-
-        this.stationPropertieKeyMap.put(_key, value.getKey());
-        //value.addNetworkParentKey(this.Key_timestamp);
+        this.stationPropertieTransientMap.put(_key, value);
     }
 
-    public void putAvailabilityRecord(int _key, AvailabilityRecord value)
+    public void putAvailabilityforStationId(int stationId, AvailabilityPair<Integer, Integer> availability)
     {
-        this.availabilityMap.put(_key, value);
-
-        this.availabilityKeyMap.put(_key, value.getKey());
+        this.nbBikesByStationId.put(stationId, availability.nbBikes);
+        this.nbEmptyDocksByStationId.put(stationId, availability.nbEmptyDocks);
     }
 
     public Key getPreviousNetworkKey(){
         return this.previousNetworkKey;
     }
 
-    public boolean isKeyMapNull(){
-        return availabilityKeyMap == null;
+    public boolean areAvailibilityMapNull(){
+        return nbEmptyDocksByStationId == null;
+        //Both map will always have the same key set
     }
 
-    public boolean keyMapContains(int stationId){
-        return availabilityKeyMap.containsKey(stationId);
+    public boolean availabilityMapContains(int stationId){
+        return nbBikesByStationId.containsKey(stationId);
+        //Both map will always have the same key set
     }
 
-    public Key getAvailabilityRecordKeyForStation(int stationId){
-        return availabilityKeyMap.get(stationId);
+    public AvailabilityPair<Integer,Integer> getAvailabilityForStation(int stationId){
+        return new AvailabilityPair<>(nbBikesByStationId.get(stationId), nbEmptyDocksByStationId.get(stationId));
     }
-
-
 }

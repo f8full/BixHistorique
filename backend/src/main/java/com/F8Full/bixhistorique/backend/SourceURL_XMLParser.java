@@ -1,6 +1,6 @@
 package com.F8Full.bixhistorique.backend;
 
-import com.F8Full.bixhistorique.backend.datamodel.AvailabilityRecord;
+import com.F8Full.bixhistorique.backend.datamodel.AvailabilityPair;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
 import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
 import com.google.appengine.api.datastore.GeoPt;
@@ -59,7 +59,7 @@ public class SourceURL_XMLParser extends DefaultHandler{
 
     //Used to accumulate data before putting it into the Network map
     StationProperties mTempStationProperties;
-    AvailabilityRecord mTempAvailabilityRecord;
+    int mTempNbBikes;
     float mTempLat;
 
     public SourceURL_XMLParser(String _url) throws IOException {
@@ -74,8 +74,6 @@ public class SourceURL_XMLParser extends DefaultHandler{
     //This returns a complete Network object representing the XML data source
     //Note : the latestUpdateTime of each station is stored in the corresponding StationProperties
     //This is to pass along the data to the processing code
-    //When a StationProperties entity is persisted, the stored timestamp corresponds to
-    //the timestamp of the oldest Network entity referring it
     public Network parse()
     {
         //URL url = new URL("http://www.example.com/atom.xml");
@@ -140,10 +138,6 @@ public class SourceURL_XMLParser extends DefaultHandler{
         {
             mTempStationProperties = new StationProperties();
             mTempStationProperties.setDate_Timestamp(new Date(mNetworkToReturn.getTimestamp()));
-
-            //The key is set when reading availability
-            //"nbBikes|nbEmptyDocks"
-            mTempAvailabilityRecord = new AvailabilityRecord();
         }
     }
 
@@ -208,15 +202,11 @@ public class SourceURL_XMLParser extends DefaultHandler{
         }
         else if (_element.equalsIgnoreCase("nbBikes"))
         {
-            mTempAvailabilityRecord.setNbBikes(Integer.parseInt(mBufferedString.toString()));
+            mTempNbBikes = Integer.parseInt(mBufferedString.toString());
         }
         else if (_element.equalsIgnoreCase("nbEmptyDocks"))
         {
-            mTempAvailabilityRecord.setNbEmptyDocks(Integer.parseInt(mBufferedString.toString()));
-
-            mTempAvailabilityRecord.setKey( KeyFactory.createKey( AvailabilityRecord.class.getSimpleName(),
-                    Integer.toString(mTempAvailabilityRecord.getNbBikes())
-                            + "|" + mBufferedString.toString() ) );
+            mNetworkToReturn.putAvailabilityforStationId(mTempStationProperties.getId(),new AvailabilityPair<>(mTempNbBikes, Integer.parseInt(mBufferedString.toString())));
         }
         else if (_element.equalsIgnoreCase("latestUpdateTime"))
         {
@@ -242,7 +232,6 @@ public class SourceURL_XMLParser extends DefaultHandler{
         else if (_element.equalsIgnoreCase("station"))
         {
             mNetworkToReturn.putStationProperties(mTempStationProperties.getId(), mTempStationProperties);
-            mNetworkToReturn.putAvailabilityRecord(mTempStationProperties.getId(), mTempAvailabilityRecord);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.F8Full.bixhistorique.backend;
 
-import com.F8Full.bixhistorique.backend.datamodel.AvailabilityRecord;
+import com.F8Full.bixhistorique.backend.datamodel.AvailabilityPair;
 import com.F8Full.bixhistorique.backend.datamodel.LastNetworkTimeData;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
 import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
@@ -27,9 +27,9 @@ import javax.servlet.http.HttpServletResponse;
  * This file is part of BixHistorique -- Backend
  * This servlet is invoked to parse and process the XML source
  */
+@SuppressWarnings("unchecked")  //ArrayList<Long> rawMap = (ArrayList)result.getProperty("latestUpdateTimeMap");
+                                //resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
 public class ParseCronServlet extends HttpServlet{
-
-    private static final Logger log = Logger.getLogger(ParseCronServlet.class.getName());
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp) /*throws IOException*/ {
         //The current status of the network
@@ -46,7 +46,7 @@ public class ParseCronServlet extends HttpServlet{
         }
         catch (Exception e)
         {
-            Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't parse data source");
+            Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't parse data source" + e.toString());
             return;
             //Catch here exception happening at parser creation level
             //Probably gonna happen when the data source is down. I think simply dropping any attempt should
@@ -99,7 +99,7 @@ public class ParseCronServlet extends HttpServlet{
             {
                 long previousLatest = timeData.getLatestUpdateTimeForStationId(stationId);
 
-                long currentLatest = curNetwork.stationPropertieMap.get((int)stationId).getTimestamp();
+                long currentLatest = curNetwork.stationPropertieTransientMap.get((int)stationId).getTimestamp();
 
                 //Some new data available for this station
                 if (previousLatest != currentLatest)
@@ -110,15 +110,12 @@ public class ParseCronServlet extends HttpServlet{
 
                     Network prevNetwork = pm.getObjectById(Network.class, previousNetworkKey);
 
-                    //Availability key name is constructed as "NbBikes|NbEmptyDocks"
-                    String prevAvailability = retrievePreviousAvailability(prevNetwork, stationId, pm).getName();
-                    String currAvailability = curNetwork.availabilityMap.get((int)stationId).getNbBikes() + "|" + curNetwork.availabilityMap.get((int)stationId).getNbEmptyDocks();
+                    AvailabilityPair prevAvailability = retrievePreviousAvailability(prevNetwork, (int)stationId, pm);
+                    AvailabilityPair currAvailability = curNetwork.getAvailabilityForStation((int)stationId);
 
-                    if (!prevAvailability.equalsIgnoreCase(currAvailability))
+                    if (!(prevAvailability.nbBikes == currAvailability.nbBikes && prevAvailability.nbEmptyDocks == currAvailability.nbEmptyDocks))
                     {
-                        AvailabilityRecord curAvail = new AvailabilityRecord(KeyFactory.createKey(AvailabilityRecord.class.getSimpleName(), currAvailability ));
-
-                        resultNetwork.putAvailabilityRecord((int)stationId, curAvail);
+                        resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
                     }
                 }
             }
@@ -126,7 +123,6 @@ public class ParseCronServlet extends HttpServlet{
             timeData.setTimestamp(curNetwork.getTimestamp());
 
             try{
-                pm.makePersistentAll(resultNetwork.availabilityMap.values());
                 pm.makePersistent(resultNetwork);
                 pm.makePersistent(timeData);
 
@@ -173,11 +169,11 @@ public class ParseCronServlet extends HttpServlet{
 
         //Copy latestUpdateTime data from each StationProperties to the LastNetworkTimeData object
         //Update key to store the timestamp of the Network object (oldest one referring this particular StationProperties)
-        for(int stationId : initialNetwork.stationPropertieMap.keySet())
+        for(int stationId : initialNetwork.stationPropertieTransientMap.keySet())
         {
-            networkTimeData.putLatestUpdateTime(stationId, initialNetwork.stationPropertieMap.get(stationId).getTimestamp());
+            networkTimeData.putLatestUpdateTime(stationId, initialNetwork.stationPropertieTransientMap.get(stationId).getTimestamp());
 
-            initialNetwork.stationPropertieMap.get(stationId).setKey(
+            initialNetwork.stationPropertieTransientMap.get(stationId).setKey(
                     KeyFactory.createKey(StationProperties.class.getSimpleName(),
                             stationId + "|" + initialNetwork.getTimestamp()));
         }
@@ -185,22 +181,11 @@ public class ParseCronServlet extends HttpServlet{
         PersistenceManager pm = PMF.get().getPersistenceManager();
 
         try{
-            //First persist all StationProperties and AvailabilityRecord entities
+            //First persist all StationProperties
             //Many to Many UNOWNED relationship
             //They are in non persistent maps
-            pm.makePersistentAll(initialNetwork.availabilityMap.values());
-            pm.makePersistentAll(initialNetwork.stationPropertieMap.values());
+            pm.makePersistentAll(initialNetwork.stationPropertieTransientMap.values());
 
-            /*for (AvailabilityRecord avail : outNetwork.availabilityMap.values())
-            {
-                //We could check if it is in datastore already by querying by key
-                //otherwise we will overwrite the already persisted object
-                pm.makePersistent(avail);
-            }
-            for (StationProperties prop : outNetwork.stationPropertieMap.values())
-            {
-                pm.makePersistent(prop)
-            }*/
             pm.makePersistent(initialNetwork);
             pm.makePersistent(networkTimeData);
         }finally {
@@ -208,10 +193,10 @@ public class ParseCronServlet extends HttpServlet{
         }
     }
 
-    private Key retrievePreviousAvailability(Network curStep, long stationId, PersistenceManager pm)
+    private AvailabilityPair<Integer, Integer> retrievePreviousAvailability(Network curStep, int stationId, PersistenceManager pm)
     {
-        if (!curStep.isKeyMapNull() && curStep.keyMapContains((int)stationId))
-            return curStep.getAvailabilityRecordKeyForStation((int) stationId);
+        if (!curStep.areAvailibilityMapNull() && curStep.availabilityMapContains(stationId))
+            return curStep.getAvailabilityForStation(stationId);
         else
         {
             if (curStep.getPreviousNetworkKey() == null)
