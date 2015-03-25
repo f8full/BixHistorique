@@ -118,6 +118,19 @@ public class ParseCronServlet extends HttpServlet{
                     AvailabilityPair prevAvailability = retrievePreviousAvailability(prevNetwork, (int)stationId, depthCounter, parseData, pm);
                     AvailabilityPair currAvailability = curNetwork.getAvailabilityForStation((int)stationId);
 
+                    boolean stationLocked = curNetwork.stationPropertieTransientMap.get((int)stationId).isLocked();
+                    boolean stationInstalled = curNetwork.stationPropertieTransientMap.get((int)stationId).isInstalled();
+
+                    if (!stationInstalled)
+                    {
+                        currAvailability = new AvailabilityPair(-1,-1);
+                    }
+                    else if (stationLocked)
+                    {
+                        //A locked station don't gives out bikes but bikes can be docked to it
+                        currAvailability = new AvailabilityPair(-1, currAvailability.nbEmptyDocks);
+                    }
+
                     if (needCompleteRecord || !(prevAvailability.nbBikes == currAvailability.nbBikes && prevAvailability.nbEmptyDocks == currAvailability.nbEmptyDocks))
                     {
                         resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
