@@ -1,2 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<cronentries/>
+<cronentries>
+    <cron>
+        <url>/cron/parsecronjob</url>
+        <description>Parse data source every five minutes</description>
+        <schedule>every 5 minutes</schedule>
+    </cron>
+</cronentries>

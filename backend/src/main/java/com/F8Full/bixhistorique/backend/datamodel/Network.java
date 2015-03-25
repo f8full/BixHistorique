@@ -63,7 +63,7 @@ public class Network {
     private Network(Map<Integer, Key> propMap, Map<Integer, Key> availMap, Key curKey, Key prevKey) {
         this.stationPropertieKeyMap = propMap;
         this.availabilityKeyMap = availMap;
-        this.Key_timestamp = curKey;
+        setTimestamp(curKey);
         this.previousNetworkKey = prevKey;
     }
 
@@ -77,7 +77,8 @@ public class Network {
         //this.Key_timestamp = KeyFactory.createKey(Network.class.getSimpleName(), timestamp);
         //JSON serializing forbids complex setter (KeyFactory is external)
         this.Key_timestamp = Key_timestamp;
-        Date_timestamp = new Date(Long.parseLong(Key_timestamp.getName()));
+        if (Key_timestamp != null)  //Happens at construction
+            Date_timestamp = new Date(Long.parseLong(Key_timestamp.getName()));
     }
 
     public long getTimestamp(){
@@ -101,6 +102,10 @@ public class Network {
 
     public Key getPreviousNetworkKey(){
         return this.previousNetworkKey;
+    }
+
+    public boolean isKeyMapNull(){
+        return availabilityKeyMap == null;
     }
 
     public boolean keyMapContains(int stationId){
