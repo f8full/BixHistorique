@@ -75,18 +75,25 @@ public class ParseCronServlet extends HttpServlet{
                 return;
             }
 
-            //If one station stayed untouched for an hour at a 5 minutes parse interval
-            boolean needCompleteRecord = (Long) result.getProperty("biggestGap") > 12;
+            parseData.setEncodedKey(KeyFactory.keyToString(result.getKey())); //only one LastParseData entity
 
-            //So that there will always be only one LastParseData entity in datastore
-            parseData.setEncodedKey(KeyFactory.keyToString(result.getKey()));
+            ArrayList<Long> rawlatestUpdateMap = (ArrayList)result.getProperty("latestUpdateTimeMap");
 
-            ArrayList<Long> rawMap = (ArrayList)result.getProperty("latestUpdateTimeMap");
-
-            for (int i=0; i< rawMap.size()-1; i+=2)
+            for (int i=0; i< rawlatestUpdateMap.size()-1; i+=2)
             {
-                parseData.putLatestUpdateTime(rawMap.get(i), rawMap.get(i + 1));
+                parseData.putLatestUpdateTime(rawlatestUpdateMap.get(i), rawlatestUpdateMap.get(i + 1));
             }
+
+            ArrayList<Long> rawGapMap = (ArrayList)result.getProperty("gapByStationId");
+
+            if (rawGapMap != null)
+            {
+                for (int i=0; i< rawGapMap.size()-1; i+=2)
+                {
+                    parseData.putGapForStationId(rawGapMap.get(i), rawGapMap.get(i + 1));
+                }
+            }
+
 
             Key previousNetworkKey = KeyFactory.createKey( Network.class.getSimpleName(),
                     String.valueOf(parseData.getTimestamp()) );
@@ -105,17 +112,14 @@ public class ParseCronServlet extends HttpServlet{
 
                 long currentLatest = curNetwork.stationPropertieTransientMap.get((int)stationId).getTimestamp();
 
-                //We want a complete record OR some new data available for this station
-                if (needCompleteRecord || previousLatest != currentLatest)
+                //last record is too old OR some new data available for this station
+                int MAX_STATION_GAP = 12;   //One hour at 5 minutes parse interval
+
+                if (parseData.getGapForStationId(stationId) > MAX_STATION_GAP || previousLatest != currentLatest)
                 {
                     //Update it for next processing
                     parseData.putLatestUpdateTime(stationId, currentLatest);
 
-                    Network prevNetwork = pm.getObjectById(Network.class, previousNetworkKey);
-
-                    int depthCounter = 0;
-
-                    AvailabilityPair prevAvailability = retrievePreviousAvailability(prevNetwork, (int)stationId, depthCounter, parseData, pm);
                     AvailabilityPair currAvailability = curNetwork.getAvailabilityForStation((int)stationId);
 
                     boolean stationLocked = curNetwork.stationPropertieTransientMap.get((int)stationId).isLocked();
@@ -131,10 +135,12 @@ public class ParseCronServlet extends HttpServlet{
                         currAvailability = new AvailabilityPair(-1, currAvailability.nbEmptyDocks);
                     }
 
-                    if (needCompleteRecord || !(prevAvailability.nbBikes == currAvailability.nbBikes && prevAvailability.nbEmptyDocks == currAvailability.nbEmptyDocks))
-                    {
-                        resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
-                    }
+                    resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
+                    parseData.resetGapForStationId(stationId);
+                }
+                else
+                {
+                    parseData.increaseGapForStationId(stationId);
                 }
             }
 
@@ -142,17 +148,6 @@ public class ParseCronServlet extends HttpServlet{
 
             try{
                 pm.makePersistent(resultNetwork);
-
-                if(needCompleteRecord) {
-                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "Complete Network persisted");
-                    parseData.setBiggestGap(0);
-                }
-                else
-                {
-                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "Biggest gap : " + parseData.getBiggestGap());
-                }
-
-                //If this raises an exception, big troubles are ahead
                 pm.makePersistent(parseData);
 
             }finally {
@@ -194,13 +189,13 @@ public class ParseCronServlet extends HttpServlet{
         //There will always be only one entity of that kind in the datastore
         //it will be updated each time a new Network object is persisted in the datastore
         //(every time except when data source down OR lastUpdate attribute of <stations> XML tag didn't change)
-        LastParseData networkTimeData = new LastParseData(initialNetwork.getTimestamp());
+        LastParseData parseData = new LastParseData(initialNetwork.getTimestamp());
 
         //Copy latestUpdateTime data from each StationProperties to the LastNetworkTimeData object
         //Update key to store the timestamp of the Network object (oldest one referring this particular StationProperties)
         for(int stationId : initialNetwork.stationPropertieTransientMap.keySet())
         {
-            networkTimeData.putLatestUpdateTime(stationId, initialNetwork.stationPropertieTransientMap.get(stationId).getTimestamp());
+            parseData.putLatestUpdateTime(stationId, initialNetwork.stationPropertieTransientMap.get(stationId).getTimestamp());
 
             initialNetwork.stationPropertieTransientMap.get(stationId).setKey(
                     KeyFactory.createKey(StationProperties.class.getSimpleName(),
@@ -216,31 +211,9 @@ public class ParseCronServlet extends HttpServlet{
             pm.makePersistentAll(initialNetwork.stationPropertieTransientMap.values());
 
             pm.makePersistent(initialNetwork);
-            pm.makePersistent(networkTimeData);
+            pm.makePersistent(parseData);
         }finally {
             pm.close();
         }
-    }
-
-    private AvailabilityPair<Integer, Integer> retrievePreviousAvailability(Network curStep, int stationId, int depthCounter, LastParseData parseData, PersistenceManager pm)
-    {
-        if (!curStep.areAvailibilityMapNull() && curStep.availabilityMapContains(stationId))
-            return curStep.getAvailabilityForStation(stationId);
-        else
-        {
-            if (curStep.getPreviousNetworkKey() == null)
-            {
-                Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't retrieve previous availability for stationId : " + stationId);
-            }
-            else
-            {
-                ++depthCounter;
-                if(depthCounter > parseData.getBiggestGap())
-                    parseData.setBiggestGap(depthCounter);    //Keeping track of the max depth
-
-                return retrievePreviousAvailability(pm.getObjectById(Network.class, curStep.getPreviousNetworkKey()), stationId, depthCounter, parseData, pm);
-            }
-        }
-        return null;
     }
 }
