@@ -84,16 +84,11 @@ public class ParseCronServlet extends HttpServlet{
                 parseData.putLatestUpdateTime(rawlatestUpdateMap.get(i), rawlatestUpdateMap.get(i + 1));
             }
 
-            ArrayList<Long> rawGapMap = (ArrayList)result.getProperty("gapByStationId");
+            int MAX_STATION_GAP = 12;   //One hour at 5 minutes parse interval
 
-            if (rawGapMap != null)
-            {
-                for (int i=0; i< rawGapMap.size()-1; i+=2)
-                {
-                    parseData.putGapForStationId(rawGapMap.get(i), rawGapMap.get(i + 1));
-                }
-            }
+            long countSinceLastComplete = (Long) result.getProperty("countSinceLastComplete");
 
+            boolean needCompleteRecord =  countSinceLastComplete > MAX_STATION_GAP;
 
             Key previousNetworkKey = KeyFactory.createKey( Network.class.getSimpleName(),
                     String.valueOf(parseData.getTimestamp()) );
@@ -112,10 +107,8 @@ public class ParseCronServlet extends HttpServlet{
 
                 long currentLatest = curNetwork.stationPropertieTransientMap.get((int)stationId).getTimestamp();
 
-                //last record is too old OR some new data available for this station
-                int MAX_STATION_GAP = 12;   //One hour at 5 minutes parse interval
-
-                if (parseData.getGapForStationId(stationId) > MAX_STATION_GAP || previousLatest != currentLatest)
+                //time for a complete record OR some new data available for this station
+                if (needCompleteRecord || previousLatest != currentLatest)
                 {
                     //Update it for next processing
                     parseData.putLatestUpdateTime(stationId, currentLatest);
@@ -136,15 +129,17 @@ public class ParseCronServlet extends HttpServlet{
                     }
 
                     resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
-                    parseData.resetGapForStationId(stationId);
-                }
-                else
-                {
-                    parseData.increaseGapForStationId(stationId);
                 }
             }
 
             parseData.setTimestamp(curNetwork.getTimestamp());
+
+            if(needCompleteRecord) {
+                parseData.setCountSinceLastComplete(0);
+                resultNetwork.setComplete();
+            }
+            else
+                parseData.setCountSinceLastComplete((int)countSinceLastComplete + 1);
 
             try{
                 pm.makePersistent(resultNetwork);
@@ -184,6 +179,8 @@ public class ParseCronServlet extends HttpServlet{
 
         //This is a read only copy of the network currently described by the data source
         final Network initialNetwork = parser.parse();
+
+        initialNetwork.setComplete();
 
         //Initial parse : we have to setup a new LastNetworkTimeData entity
         //There will always be only one entity of that kind in the datastore

@@ -33,13 +33,7 @@ public class LastParseData {
     Map<Long, Long> latestUpdateTimeMap;  //Mapped by station ID
 
     @Persistent
-    private Map<Long, Long> gapByStationId;
-    //Retains the max number of read that have been required to retrieve the availability of a
-    //station. Based on that, we will choose to record the availability of a station regardless
-    //of an actual change when over a certain threshold. Doesn't contains a stationid key if gap == 0
-    //This will reduce the number of read required to rebuilt availability at any given time
-    //at the cost of more writes when not many stations are used
-
+    private int countSinceLastComplete; //How many parse since last complete record
 
     private LastParseData(){}
 
@@ -47,7 +41,7 @@ public class LastParseData {
     {
         this.timestamp = timestamp;
         this.latestUpdateTimeMap = new Hashtable<>();
-        this.gapByStationId = new Hashtable<>();
+        this.countSinceLastComplete = 0;
     }
 
     public void setTimestamp(long timestamp) {
@@ -77,29 +71,8 @@ public class LastParseData {
         return latestUpdateTimeMap.get(stationId);
     }
 
-    public void increaseGapForStationId(long stationId)
-    {
-        if (this.gapByStationId.containsKey(stationId))
-            this.gapByStationId.put(stationId, this.gapByStationId.get(stationId) + 1);
-        else
-            this.gapByStationId.put(stationId, 1L);  //map doesn't keep values == 0
+    public void setCountSinceLastComplete(int count){
+        this.countSinceLastComplete = count;
     }
 
-    public long getGapForStationId(long stationId)
-    {
-        if (!this.gapByStationId.containsKey(stationId))
-            return 0;
-        else
-            return this.gapByStationId.get(stationId);
-    }
-
-    public void resetGapForStationId(long stationId)
-    {
-        this.gapByStationId.remove(stationId);
-    }
-
-    public void putGapForStationId(long stationId, long gap)
-    {
-        this.gapByStationId.put(stationId, gap);
-    }
 }

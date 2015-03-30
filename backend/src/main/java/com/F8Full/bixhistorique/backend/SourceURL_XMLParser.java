@@ -178,7 +178,7 @@ public class SourceURL_XMLParser extends DefaultHandler{
         {
             mTempStationProperties.setLocked(Boolean.parseBoolean(mBufferedString.toString()));
         }
-        else if (_element.equalsIgnoreCase("installDate"))
+        /*else if (_element.equalsIgnoreCase("installDate"))
         {
             if (!mBufferedString.toString().isEmpty())
             {
@@ -199,7 +199,8 @@ public class SourceURL_XMLParser extends DefaultHandler{
         else if (_element.equalsIgnoreCase("public"))
         {
             mTempStationProperties.setPublic(Boolean.parseBoolean(mBufferedString.toString()));
-        }
+        }*/
+
         else if (_element.equalsIgnoreCase("nbBikes"))
         {
             mTempNbBikes = Integer.parseInt(mBufferedString.toString());

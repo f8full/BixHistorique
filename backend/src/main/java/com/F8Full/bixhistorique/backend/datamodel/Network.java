@@ -30,6 +30,8 @@ public class Network {
     @Persistent
     private Date Date_timestampUTC;
 
+    @Persistent
+    private boolean complete;   //True if this is a complete bike network state record
 
     @Persistent
     private Map<Integer, Integer> nbBikesByStationId;
@@ -41,8 +43,6 @@ public class Network {
     private Key previousNetworkKey;
 
     //Filled at parsing time
-    //Relationships are unowned, hence entities must be persisted independently
-    //we will choose only the pertinent ones
     @NotPersistent
     public Map<Integer, StationProperties> stationPropertieTransientMap = new Hashtable<>();  //Mapped by station ID
 
@@ -53,14 +53,15 @@ public class Network {
 
     public Network(Key currentKey, Key previousKey){
 
-        this(new Hashtable<Integer,Integer>(), new Hashtable<Integer,Integer>(), currentKey, previousKey);
+        this(new Hashtable<Integer,Integer>(), new Hashtable<Integer,Integer>(), currentKey, previousKey, false);
     }
 
-    private Network(Map<Integer, Integer> bikesMap, Map<Integer, Integer> docksMap, Key curKey, Key prevKey) {
+    private Network(Map<Integer, Integer> bikesMap, Map<Integer, Integer> docksMap, Key curKey, Key prevKey, boolean complete) {
         this.nbBikesByStationId = bikesMap;
         this.nbEmptyDocksByStationId = docksMap;
         setTimestamp(curKey);
         this.previousNetworkKey = prevKey;
+        this.complete = complete;
     }
 
     public Key getKey(){
@@ -95,6 +96,15 @@ public class Network {
     public Key getPreviousNetworkKey(){
         return this.previousNetworkKey;
     }
+
+    public void setComplete(){
+        this.complete = true;
+    }
+
+    public boolean isComplete(){
+        return this.complete;
+    }
+
 
     public boolean areAvailibilityMapNull(){
         return nbEmptyDocksByStationId == null;

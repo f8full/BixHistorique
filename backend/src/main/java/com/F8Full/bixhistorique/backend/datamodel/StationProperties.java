@@ -5,6 +5,7 @@ import com.google.appengine.api.datastore.Key;
 
 import java.util.Date;
 
+import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
@@ -53,30 +54,17 @@ public class StationProperties {
     private
     GeoPt pos;
 
-    @Persistent
+    @NotPersistent
     private
     boolean installed;
 
-    @Persistent
-    private
-    Date installDate;
-
-    @Persistent
-    private
-    Date removalDate;
-
-    @Persistent
+    @NotPersistent
     private
     boolean locked;
 
     @Persistent
     private
     boolean temporary;
-
-    @Persistent
-    private
-    boolean mPublic;    //public is a keyword
-
 
     public int getId() {
         return id;
@@ -118,22 +106,6 @@ public class StationProperties {
         this.installed = installed;
     }
 
-    public Date getInstallDate() {
-        return installDate;
-    }
-
-    public void setInstallDate(Date installDate) {
-        this.installDate = installDate;
-    }
-
-    public Date getRemovalDate() {
-        return removalDate;
-    }
-
-    public void setRemovalDate(Date removalDate) {
-        this.removalDate = removalDate;
-    }
-
     public boolean isLocked() {
         return locked;
     }
@@ -149,14 +121,6 @@ public class StationProperties {
     public void setTemporary(boolean temporary) {
         this.temporary = temporary;
     }
-
-    public boolean isPublic() {
-        return mPublic;
-    }   //public is a keyword
-
-    public void setPublic(boolean _public) {
-        this.mPublic = _public;
-    } //public is a keyword
 
     public void setDate_Timestamp(Date timestamp){
         this.Date_Timestamp = timestamp;
