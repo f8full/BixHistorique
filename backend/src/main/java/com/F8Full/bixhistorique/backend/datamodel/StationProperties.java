@@ -31,7 +31,7 @@ public class StationProperties {
 
     //Should I construct a key from the id + the timestamp and provide special accessors ?
     @PrimaryKey
-    Key key;    //"id|timestamp"
+    Key key;    //"id_timestamp"
     //referencing this StationProperties entity
 
     @Persistent
@@ -130,7 +130,7 @@ public class StationProperties {
         return this.key;
     }
 
-    //"id|timestamp"
+    //"id_timestamp"
     public void setKey(Key fullKey)
     {
         //this.key = KeyFactory.createKey(StationProperties.class.getSimpleName(), "");
@@ -138,12 +138,12 @@ public class StationProperties {
         this.key = fullKey;
 
         //id MUST be set before key, or big troubles are ahead
-        String timestamp = fullKey.getName().substring(Integer.toString(this.id).length()+ "|".length());    //in ms from epoch
+        String timestamp = fullKey.getName().substring(Integer.toString(this.id).length()+ "_".length());    //in ms from epoch
         this.Date_Timestamp = new Date(Long.parseLong(timestamp));
 
     }
 
     public long getTimestamp(){
-        return Long.parseLong(this.key.getName().substring(Integer.toString(this.id).length() + "|".length()));    //in ms from epoch
+        return Long.parseLong(this.key.getName().substring(Integer.toString(this.id).length() + "_".length()));    //in ms from epoch
     }
 }

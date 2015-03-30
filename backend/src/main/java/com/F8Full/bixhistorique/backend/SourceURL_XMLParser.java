@@ -221,12 +221,12 @@ public class SourceURL_XMLParser extends DefaultHandler{
             if (!mBufferedString.toString().isEmpty())
             {
                 mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
-                        mTempStationProperties.getId() + "|" + mBufferedString.toString() ) );
+                        mTempStationProperties.getId() + "_" + mBufferedString.toString() ) );
             }
             else
             {
                 mTempStationProperties.setKey(KeyFactory.createKey( StationProperties.class.getSimpleName(),
-                        mTempStationProperties.getId() + "|0" ) );
+                        mTempStationProperties.getId() + "_0" ) );
             }
 
         }

@@ -160,7 +160,7 @@ public class ParseCronServlet extends HttpServlet{
 
         PersistenceManager pm = PMF.get().getPersistenceManager();
 
-        Key k = KeyFactory.createKey(StationProperties.class.getSimpleName(), "100|1427096445684");
+        Key k = KeyFactory.createKey(StationProperties.class.getSimpleName(), "100_1427096445684");
 
         response = pm.getObjectById(StationProperties.class, k);
 
@@ -196,7 +196,7 @@ public class ParseCronServlet extends HttpServlet{
 
             initialNetwork.stationPropertieTransientMap.get(stationId).setKey(
                     KeyFactory.createKey(StationProperties.class.getSimpleName(),
-                            stationId + "|" + initialNetwork.getTimestamp()));
+                            stationId + "_" + initialNetwork.getTimestamp()));
         }
 
         PersistenceManager pm = PMF.get().getPersistenceManager();
