@@ -137,7 +137,7 @@ public class SourceURL_XMLParser extends DefaultHandler{
         else if (_elementName.equalsIgnoreCase("station"))
         {
             mTempStationProperties = new StationProperties();
-            mTempStationProperties.setDate_Timestamp(new Date(mNetworkToReturn.getTimestamp()));
+            mTempStationProperties.setDate_TimestampUTC(new Date(mNetworkToReturn.getTimestamp()));
         }
     }
 
@@ -152,12 +152,12 @@ public class SourceURL_XMLParser extends DefaultHandler{
         {
             mTempStationProperties.setName(mBufferedString.toString());
         }
-        else if (_element.equalsIgnoreCase("terminalName"))
+        //dropped
+        /*else if (_element.equalsIgnoreCase("terminalName"))
         {
             mTempStationProperties.setTerminalName(mBufferedString.toString());
         }
-        //dropped
-        /*else if (_element.equalsIgnoreCase("lastCommWithServer"))
+        else if (_element.equalsIgnoreCase("lastCommWithServer"))
         {
             //SAX guarantees setID will have been called before executing this
             //mNetworkToReturn.putLastCommWithServer(mTempStationProperties.getId(), Long.parseLong(mBufferedString.toString()));

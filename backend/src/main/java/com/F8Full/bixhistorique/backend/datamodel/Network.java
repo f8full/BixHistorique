@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
@@ -34,12 +35,15 @@ public class Network {
     private boolean complete;   //True if this is a complete bike network state record
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private Map<Integer, Integer> nbBikesByStationId;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private Map<Integer, Integer> nbEmptyDocksByStationId;
 
     @Persistent
+    //@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private Key previousNetworkKey;
 
     //Filled at parsing time

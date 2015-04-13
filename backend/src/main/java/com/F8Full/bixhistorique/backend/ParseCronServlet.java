@@ -13,6 +13,9 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +37,7 @@ public class ParseCronServlet extends HttpServlet{
     public void doGet(HttpServletRequest req, HttpServletResponse resp) /*throws IOException*/ {
         //The current status of the network
         Network curNetwork;
+
         String parseUrl = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
         //String parseUrl = "WEB-INF/capitalBikeShare"+ fileIndex + ".xml";
 
@@ -55,6 +59,34 @@ public class ParseCronServlet extends HttpServlet{
             //is implemented.
         }
 
+        if (req.getParameter("process").equalsIgnoreCase("availability"))
+            processAvailability(curNetwork);
+        else if(req.getParameter("process").equalsIgnoreCase("properties"))
+            processProperties(curNetwork);
+
+
+
+        /*StationProperties response;
+
+        PersistenceManager pm = PMF.get().getPersistenceManager();
+
+        Key k = KeyFactory.createKey(StationProperties.class.getSimpleName(), "100_1427096445684");
+
+        response = pm.getObjectById(StationProperties.class, k);
+
+        pm.close();*/
+
+        //return response;
+
+    }
+
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
+        doGet(req, resp);
+    }
+
+    private void processAvailability(Network curNetwork)
+    {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
         //First, retrieve data about the last recording
@@ -153,32 +185,14 @@ public class ParseCronServlet extends HttpServlet{
         }
         else    //For some reason there is no record of a previous time
         {
-            initialParse(parser);
+            initialParse(curNetwork);
         }
 
-        /*StationProperties response;
-
-        PersistenceManager pm = PMF.get().getPersistenceManager();
-
-        Key k = KeyFactory.createKey(StationProperties.class.getSimpleName(), "100_1427096445684");
-
-        response = pm.getObjectById(StationProperties.class, k);
-
-        pm.close();*/
-
-        //return response;
-
     }
 
-    @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        doGet(req, resp);
-    }
+    private void initialParse(Network initialNetwork) {
 
-    private void initialParse(SourceURL_XMLParser parser) {
-
-        //This is a read only copy of the network currently described by the data source
-        final Network initialNetwork = parser.parse();
+        processProperties(initialNetwork);
 
         initialNetwork.setComplete();
 
@@ -189,28 +203,39 @@ public class ParseCronServlet extends HttpServlet{
         LastParseData parseData = new LastParseData(initialNetwork.getTimestamp());
 
         //Copy latestUpdateTime data from each StationProperties to the LastNetworkTimeData object
-        //Update key to store the timestamp of the Network object (oldest one referring this particular StationProperties)
         for(int stationId : initialNetwork.stationPropertieTransientMap.keySet())
         {
             parseData.putLatestUpdateTime(stationId, initialNetwork.stationPropertieTransientMap.get(stationId).getTimestamp());
-
-            initialNetwork.stationPropertieTransientMap.get(stationId).setKey(
-                    KeyFactory.createKey(StationProperties.class.getSimpleName(),
-                            stationId + "_" + initialNetwork.getTimestamp()));
         }
 
         PersistenceManager pm = PMF.get().getPersistenceManager();
 
         try{
-            //First persist all StationProperties
-            //Many to Many UNOWNED relationship
-            //They are in non persistent maps
-            pm.makePersistentAll(initialNetwork.stationPropertieTransientMap.values());
-
             pm.makePersistent(initialNetwork);
             pm.makePersistent(parseData);
         }finally {
             pm.close();
         }
+    }
+
+    private void processProperties(Network curNetwork)
+    {
+        DateTime today = new DateTime(DateTimeZone.UTC).withTimeAtStartOfDay();
+
+        for(int stationId : curNetwork.stationPropertieTransientMap.keySet())
+        {
+            curNetwork.stationPropertieTransientMap.get(stationId).setKey(
+                    KeyFactory.createKey(StationProperties.class.getSimpleName(),
+                            stationId + "_" + today.getMillis() ));
+        }
+
+        PersistenceManager pm = PMF.get().getPersistenceManager();
+
+        try{
+            pm.makePersistentAll(curNetwork.stationPropertieTransientMap.values());
+        }finally {
+            pm.close();
+        }
+
     }
 }

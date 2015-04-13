@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
     <cron>
-        <url>/cron/parsecronjob</url>
-        <description>Parse data source every five minutes</description>
+        <url>/cron/parsecronjob?process=availability</url>
+        <description>Parse bike availability from data source every five minutes</description>
         <schedule>every 5 minutes</schedule>
+    </cron>
+    <cron>
+        <url>/cron/parsecronjob?process=properties</url>
+        <description>Parse station properties from data source every day at 3AM ETC</description>
+        <schedule>every day 03:00</schedule>
+        <timezone>America/Montreal</timezone>
     </cron>
 </cronentries>

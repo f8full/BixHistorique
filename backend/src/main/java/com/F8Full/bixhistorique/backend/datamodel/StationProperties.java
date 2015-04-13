@@ -5,6 +5,7 @@ import com.google.appengine.api.datastore.Key;
 
 import java.util.Date;
 
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
@@ -40,15 +41,12 @@ public class StationProperties {
 
     //Used internally for processing time based queries
     @Persistent
-    Date Date_Timestamp;
+    Date Date_TimestampUTC;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private
     String name;
-
-    @Persistent
-    private
-    String terminalName;
 
     @Persistent
     private
@@ -80,14 +78,6 @@ public class StationProperties {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getTerminalName() {
-        return terminalName;
-    }
-
-    public void setTerminalName(String terminalName) {
-        this.terminalName = terminalName;
     }
 
     public GeoPt getPos() {
@@ -122,8 +112,8 @@ public class StationProperties {
         this.temporary = temporary;
     }
 
-    public void setDate_Timestamp(Date timestamp){
-        this.Date_Timestamp = timestamp;
+    public void setDate_TimestampUTC(Date timestamp){
+        this.Date_TimestampUTC = timestamp;
     }
 
     public Key getKey(){
@@ -139,7 +129,7 @@ public class StationProperties {
 
         //id MUST be set before key, or big troubles are ahead
         String timestamp = fullKey.getName().substring(Integer.toString(this.id).length()+ "_".length());    //in ms from epoch
-        this.Date_Timestamp = new Date(Long.parseLong(timestamp));
+        this.Date_TimestampUTC = new Date(Long.parseLong(timestamp));
 
     }
 
