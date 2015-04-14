@@ -9,6 +9,7 @@ import java.util.Date;
 public class DataStats {
 
 
+    //touch
     public String availability_refresh_rate = "5min";
     public String stationproperties_refresh_rate = "24h 03:00 America/Montreal";
     public Date oldest_availability_date;
