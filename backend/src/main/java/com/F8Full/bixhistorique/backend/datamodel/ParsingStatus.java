@@ -18,16 +18,22 @@ public class ParsingStatus {
     @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
     private String encodedKey;
 
+    //Nothing is indexed as there will be only one entity of this kind and it will always be
+    //retrieved by key -- see Utils.RetrieveUniqueKey.parsingStatus()
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private boolean parsing_active;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private int nb_complete_network_parsing;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private int nb_partial_network_parsing;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private int nb_stationproperties_parsing;
 
     /*public String getEncodedKey() {
