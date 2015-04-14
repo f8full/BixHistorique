@@ -6,14 +6,11 @@
 
 package com.F8Full.bixhistorique.backend;
 
-import com.F8Full.bixhistorique.backend.datamodel.MyBean;
+import com.F8Full.bixhistorique.backend.responses.GetStatsResponse;
+import com.F8Full.bixhistorique.backend.utils.Utils;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
-
-import java.io.IOException;
-
-import javax.inject.Named;
 
 /**
  * An endpoint class we are exposing
@@ -26,18 +23,42 @@ public class BixHistoriqueEndpoint {
     /**
      * A simple endpoint method that takes a name and says Hi back
      */
-    @ApiMethod(name = "sayHi")
+    /*@ApiMethod(name = "sayHi")
     public MyBean sayHi(@Named("name") String name) throws IOException {
         MyBean response = new MyBean();
         response.setData("Hi, " + name);
 
         return response;
-    }
+    }*/
 
     @SuppressWarnings("unchecked") //ArrayList<Long> rawMap = (ArrayList)result.getProperty("latestUpdateTimeMap");
-    @ApiMethod(name = "testCode")
-    public void testCode(@Named("fileindex")String fileIndex) throws IOException {
+    @ApiMethod(name = "getStats")
+    public GetStatsResponse getStats()  {
 
+        //Return a stat response
 
+        GetStatsResponse response = new GetStatsResponse();
+
+        Utils.ResultMeta.addLicense(response);
+
+        return response;
     }
+
+    /**
+     * TEST Meta
+     */
+    /*@ApiMethod(name = "testMeta")
+    public TestMetaResponse testMeta() {
+
+        TestMetaResponse response = new TestMetaResponse();
+
+        Utils.ResultMeta.addLicense(response);
+
+        //For a rapid demo of the JSONObject interface
+        response.meta.put("testMetaString", "testMeta");
+        response.meta.put("testMetaBool", true);
+        response.meta.put("testMetaInt", 666);
+
+        return response;
+    }*/
 }
