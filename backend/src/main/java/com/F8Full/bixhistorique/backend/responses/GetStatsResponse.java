@@ -93,7 +93,11 @@ public class GetStatsResponse extends BaseResponse {
             else if(!gotPartial){
                 mData.last_partial_availability_date = (Date)networkEntity.getProperty("Date_timestampUTC");
                 ArrayList truc = (ArrayList)networkEntity.getProperty("nbBikesByStationId");
-                mData.last_partial_availability_nb_stations = truc.size()/2;
+                if (truc!=null)
+                    mData.last_partial_availability_nb_stations = truc.size()/2;
+                else
+                    mData.last_partial_availability_nb_stations = 0;
+                //As intended, if last Network was empty (no change), then forget, it's just stats, man ;)
                 gotPartial = true;
             }
 
