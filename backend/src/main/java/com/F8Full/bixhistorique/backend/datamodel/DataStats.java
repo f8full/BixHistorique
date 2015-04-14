@@ -6,7 +6,7 @@ import java.util.Date;
  * Created by F8Full on 2015-04-13.
  * Class data for stats. TODO: Refactor with ParsingStatus to improve getstats reads cost (no datastore query)
  */
-public class DataStatsDummyRename {
+public class DataStats {
 
 
     //touch

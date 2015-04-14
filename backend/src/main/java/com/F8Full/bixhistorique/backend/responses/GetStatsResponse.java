@@ -1,6 +1,6 @@
 package com.F8Full.bixhistorique.backend.responses;
 
-import com.F8Full.bixhistorique.backend.datamodel.DataStatsDummyRename;
+import com.F8Full.bixhistorique.backend.datamodel.DataStats;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
 import com.F8Full.bixhistorique.backend.datamodel.ParsingStatus;
 import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
@@ -25,7 +25,7 @@ import javax.jdo.PersistenceManager;
  */
 public class GetStatsResponse extends BaseResponse {
 
-    private DataStatsDummyRename mData = new DataStatsDummyRename();
+    private DataStats mData = new DataStats();
 
     //List<String> kindStrings = new ArrayList<>();
 
@@ -151,6 +151,6 @@ public class GetStatsResponse extends BaseResponse {
         //Entity networkStat = datastore.prepare(new Query("__Stat_Kind__")).asSingleEntity();
     }
 
-    public DataStatsDummyRename getData(){ return mData;}
+    public DataStats getData(){ return mData;}
 
 }
