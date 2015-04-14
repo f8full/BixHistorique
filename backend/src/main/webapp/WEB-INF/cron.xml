@@ -18,7 +18,7 @@
     <cron>
         <url>/cron/parsecronjob?process=availability</url>
         <description>If active, parse bike availability from data source every five minutes</description>
-        <schedule>every 5 minutes</schedule>
+        <schedule>every 1 minutes</schedule>
     </cron>
     <cron>
         <url>/cron/parsecronjob?process=properties</url>
