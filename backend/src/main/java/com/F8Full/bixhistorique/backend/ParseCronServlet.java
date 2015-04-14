@@ -3,8 +3,10 @@ package com.F8Full.bixhistorique.backend;
 import com.F8Full.bixhistorique.backend.datamodel.AvailabilityPair;
 import com.F8Full.bixhistorique.backend.datamodel.LastParseData;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
+import com.F8Full.bixhistorique.backend.datamodel.ParsingStatus;
 import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
 import com.F8Full.bixhistorique.backend.datautils.PMF;
+import com.F8Full.bixhistorique.backend.utils.Utils;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -34,39 +36,39 @@ import javax.servlet.http.HttpServletResponse;
                                 //resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
 public class ParseCronServlet extends HttpServlet{
 
+    public final static String DATA_SOURCE_URL = "https://montreal.bixi.com/data/bikeStations.xml";
+    //public final static String DATA_SOURCE_URL = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
+    public final static String DATA_SOURCE_LICENSE = "N/A";
+
+    private Key mParsingStatusKey = null;
+
     public void doGet(HttpServletRequest req, HttpServletResponse resp) /*throws IOException*/ {
-        //The current status of the network
-        Network curNetwork;
 
-        //TODO: replace this by user defined string (Or force it to Bixi for now, BUT DON'T FORGET).
-        //String parseUrl = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
-        String parseUrl = "https://montreal.bixi.com/data/bikeStations.xml";
-        //String parseUrl = "WEB-INF/capitalBikeShare"+ fileIndex + ".xml";
+        if(shouldParse()) {
+            //The current status of the network
+            Network curNetwork;
 
-        SourceURL_XMLParser parser;
+            SourceURL_XMLParser parser;
 
-        try
-        {
-            parser = new SourceURL_XMLParser(parseUrl);
-            curNetwork = parser.parse();
+            try {
+                parser = new SourceURL_XMLParser(DATA_SOURCE_URL);
+                curNetwork = parser.parse();
+            } catch (Exception e) {
+                Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't parse data source" + e.toString());
+                return;
+                //Catch here exception happening at parser creation level
+                //Probably gonna happen when the data source is down. I think simply dropping any attempt should
+                //be reasonable. I'm not sure I can't rewrite programmatically the cron job so that is would implement
+                //random or exponential (or some kind of formula I don't really master) retry time. For now no such logic
+                //is implemented.
+            }
+
+            if (req.getParameter("process").equalsIgnoreCase("availability"))
+                processAvailability(curNetwork);
+            else if (req.getParameter("process").equalsIgnoreCase("properties"))
+                processProperties(curNetwork);
+
         }
-        catch (Exception e)
-        {
-            Logger.getLogger(ParseCronServlet.class.getName()).log(Level.SEVERE, "can't parse data source" + e.toString());
-            return;
-            //Catch here exception happening at parser creation level
-            //Probably gonna happen when the data source is down. I think simply dropping any attempt should
-            //be reasonable. I'm not sure I can't rewrite programmatically the cron job so that is would implement
-            //random or exponential (or some kind of formula I don't really master) retry time. For now no such logic
-            //is implemented.
-        }
-
-        if (req.getParameter("process").equalsIgnoreCase("availability"))
-            processAvailability(curNetwork);
-        else if(req.getParameter("process").equalsIgnoreCase("properties"))
-            processProperties(curNetwork);
-
-
 
         /*StationProperties response;
 
@@ -80,6 +82,27 @@ public class ParseCronServlet extends HttpServlet{
 
         //return response;
 
+    }
+
+    private boolean shouldParse() {
+
+        boolean toReturn = false;
+
+        //Retrieve ParsingStatus entity from datastore
+        mParsingStatusKey = Utils.RetrieveUniqueKey.parsingStatus();
+
+        if (mParsingStatusKey != null) {
+            //Retrieve actual object
+            PersistenceManager pm = PMF.get().getPersistenceManager();
+            try{
+                ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                toReturn = parsingStatus.isParsing_active();
+            }finally {
+                pm.close();
+            }
+        }
+
+        return toReturn;
     }
 
     @Override
@@ -171,13 +194,22 @@ public class ParseCronServlet extends HttpServlet{
             if(needCompleteRecord) {
                 parseData.setCountSinceLastComplete(0);
                 resultNetwork.setComplete();
+                addCompleteToParsingStatus();
             }
-            else
-                parseData.setCountSinceLastComplete((int)countSinceLastComplete + 1);
+            else {
+                parseData.setCountSinceLastComplete((int) countSinceLastComplete + 1);
+                addPartialToParsingStatus();
+            }
 
             try{
                 pm.makePersistent(resultNetwork);
                 pm.makePersistent(parseData);
+
+                if(mParsingStatusKey != null){
+                    ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                    pm.makePersistent(parsingStatus);
+                }
+
 
             }finally {
                 pm.close();
@@ -190,6 +222,30 @@ public class ParseCronServlet extends HttpServlet{
             initialParse(curNetwork);
         }
 
+    }
+
+    private void addPartialToParsingStatus() {
+        if(mParsingStatusKey != null){
+            PersistenceManager pm = PMF.get().getPersistenceManager();
+            try{
+                ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                parsingStatus.increment_nb_partial_network();
+            }finally {
+                pm.close();
+            }
+        }
+    }
+
+    private void addCompleteToParsingStatus() {
+        if(mParsingStatusKey != null){
+            PersistenceManager pm = PMF.get().getPersistenceManager();
+            try{
+                ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                parsingStatus.increment_nb_complete_network();
+            }finally {
+                pm.close();
+            }
+        }
     }
 
     private void initialParse(Network initialNetwork) {
@@ -212,9 +268,17 @@ public class ParseCronServlet extends HttpServlet{
 
         PersistenceManager pm = PMF.get().getPersistenceManager();
 
+        addCompleteToParsingStatus();
+
         try{
             pm.makePersistent(initialNetwork);
             pm.makePersistent(parseData);
+
+            if(mParsingStatusKey != null){
+                ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                pm.makePersistent(parsingStatus);
+            }
+
         }finally {
             pm.close();
         }
@@ -232,6 +296,7 @@ public class ParseCronServlet extends HttpServlet{
         }
 
         PersistenceManager pm = PMF.get().getPersistenceManager();
+        addStationToParsingStatus();
 
         try{
             pm.makePersistentAll(curNetwork.stationPropertieTransientMap.values());
@@ -239,5 +304,18 @@ public class ParseCronServlet extends HttpServlet{
             pm.close();
         }
 
+    }
+
+    private void addStationToParsingStatus() {
+
+        if(mParsingStatusKey != null){
+            PersistenceManager pm = PMF.get().getPersistenceManager();
+            try{
+                ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                parsingStatus.increment_nb_stationproperties();
+            }finally {
+                pm.close();
+            }
+        }
     }
 }

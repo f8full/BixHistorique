@@ -2,15 +2,22 @@ package com.F8Full.bixhistorique.backend.responses;
 
 import com.F8Full.bixhistorique.backend.datamodel.DataStats;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
+import com.F8Full.bixhistorique.backend.datamodel.ParsingStatus;
+import com.F8Full.bixhistorique.backend.datamodel.StationProperties;
+import com.F8Full.bixhistorique.backend.datautils.PMF;
+import com.F8Full.bixhistorique.backend.utils.Utils;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import javax.jdo.PersistenceManager;
 
 /**
  * Created by F8Full on 2015-04-13.
@@ -47,9 +54,9 @@ public class GetStatsResponse extends BaseResponse {
                 String kindName = (String) statsForKind.getProperty("kind_name");
                 long kindCount = (Long) statsForKind.getProperty("count");
 
-                if (kindName.equalsIgnoreCase("network")) {
+                if (kindName.equalsIgnoreCase(Network.class.getSimpleName())) {
                     mData.nb_network_entities = kindCount;
-                } else if (kindName.equalsIgnoreCase("stationproperties")) {
+                } else if (kindName.equalsIgnoreCase(StationProperties.class.getSimpleName())) {
                     mData.nb_stationproperties_entities = kindCount;
                 }
 
@@ -77,16 +84,16 @@ public class GetStatsResponse extends BaseResponse {
             if (complete)
             {
                 if (!gotComplete) {
-                    mData.last_complete_availability_check_date = (Date) networkEntity.getProperty("Date_timestampUTC");
+                    mData.last_complete_availability_date = (Date) networkEntity.getProperty("Date_timestampUTC");
                     ArrayList truc = (ArrayList) networkEntity.getProperty("nbBikesByStationId");
-                    mData.last_complete_availability_check_nb_stations = truc.size() / 2;
+                    mData.last_complete_availability_nb_stations = truc.size() / 2;
                     gotComplete = true;
                 }
             }
             else if(!gotPartial){
-                mData.last_partial_availability_check_date = (Date)networkEntity.getProperty("Date_timestampUTC");
+                mData.last_partial_availability_date = (Date)networkEntity.getProperty("Date_timestampUTC");
                 ArrayList truc = (ArrayList)networkEntity.getProperty("nbBikesByStationId");
-                mData.last_partial_availability_check_nb_stations = truc.size()/2;
+                mData.last_partial_availability_nb_stations = truc.size()/2;
                 gotPartial = true;
             }
 
@@ -106,10 +113,40 @@ public class GetStatsResponse extends BaseResponse {
 
         //let's retrieve twice as much records as the minimum should be (downtime) 24 record is two hours, let's get 30
         for (Entity networkEntity : oldestNetworkPreparedQuery.asIterable(FetchOptions.Builder.withLimit(1))) {
-            mData.oldest_availability_check_date = (Date)networkEntity.getProperty("Date_timestampUTC");
+            mData.oldest_availability_date = (Date)networkEntity.getProperty("Date_timestampUTC");
         }
 
-        //Calculating additional stats data
+        //Additional stat data from parsing status
+        //TODO : refactor the sharing of responsibilities between DataStats and ParsingStatus
+        //Could be less costly in terms of read to simply store everything in ParsingStatus
+        //given the timeframe I have right now to ship and the fact this is run only when somebody's
+        //request statistics, I'll keep it like that for now
+        final Key parsingStatusKey = Utils.RetrieveUniqueKey.parsingStatus();
+
+        if (parsingStatusKey != null) {
+            PersistenceManager pm = PMF.get().getPersistenceManager();
+            try {
+                ParsingStatus parsingStatus = pm.getObjectById(ParsingStatus.class, parsingStatusKey);
+
+                mData.parsing_active = parsingStatus.isParsing_active();
+                mData.nb_complete_availability_parse = parsingStatus.getNb_complete_network_parsing();
+                mData.nb_partial_availability_parse = parsingStatus.getNb_partial_network_parsing();
+                mData.nb_days_of_data = parsingStatus.getNb_stationproperties_parsing();
+
+            } finally {
+                pm.close();
+            }
+
+        }
+        else {
+            mData.parsing_active = false;
+            mData.nb_complete_availability_parse = 0;
+            mData.nb_partial_availability_parse = 0;
+            mData.nb_days_of_data = 0;
+
+        }
+
+        mData.total_nb_availability_parse = mData.nb_complete_availability_parse + mData.nb_partial_availability_parse;
 
         //Entity networkStat = datastore.prepare(new Query("__Stat_Kind__")).asSingleEntity();
     }
