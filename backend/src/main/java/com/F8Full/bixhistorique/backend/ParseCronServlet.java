@@ -38,7 +38,9 @@ public class ParseCronServlet extends HttpServlet{
         //The current status of the network
         Network curNetwork;
 
-        String parseUrl = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
+        //TODO: replace this by user defined string (Or force it to Bixi for now, BUT DON'T FORGET).
+        //String parseUrl = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
+        String parseUrl = "https://montreal.bixi.com/data/bikeStations.xml";
         //String parseUrl = "WEB-INF/capitalBikeShare"+ fileIndex + ".xml";
 
         SourceURL_XMLParser parser;
