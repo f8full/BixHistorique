@@ -3,18 +3,18 @@
      <!-- By decommenting those entries and setting up schedule to your liking, you'll activate
      autoCron parsing in a DEPLOYED environment. In local (or even deployed), you can also directly request
      the cron URLs if you're logged as administrator.-->
-     <!--<cron>
+     <cron>
         <url>/cron/activateparsingcronjob?activate=true</url>
         <description>After this job is called the parsing will be active</description>
-        <schedule>14 of april 14:00</schedule>
+        <schedule>1 of may 00:01</schedule>
         <timezone>America/Montreal</timezone>
     </cron>
     <cron>
         <url>/cron/activateparsingcronjob?activate=false</url>
         <description>After this job is called the parsing will NOT be active</description>
-        <schedule>14 of april 16:00</schedule>
+        <schedule>31 of may 23:59</schedule>
         <timezone>America/Montreal</timezone>
-    </cron> -->
+    </cron>
     <cron>
         <url>/cron/parsecronjob?process=availability</url>
         <description>If active, parse bike availability from data source every five minutes</description>
