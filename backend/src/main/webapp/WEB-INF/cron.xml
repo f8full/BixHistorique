@@ -6,19 +6,19 @@
      <cron>
         <url>/cron/activateparsingcronjob?activate=true</url>
         <description>After this job is called the parsing will be active</description>
-        <schedule>1 of july 00:01</schedule>
+        <schedule>1 of july 03:01</schedule>
         <timezone>America/Montreal</timezone>
     </cron>
     <cron>
         <url>/cron/activateparsingcronjob?activate=false</url>
         <description>After this job is called the parsing will NOT be active</description>
-        <schedule>31 of july 23:59</schedule>
+        <schedule>1 of august 02:59</schedule>
         <timezone>America/Montreal</timezone>
     </cron>
     <cron>
         <url>/cron/parsecronjob?process=availability</url>
         <description>If active, parse bike availability from data source every five minutes</description>
-        <schedule>every 5 minutes</schedule> <!-- MUST BE SYNCED WITH ParsingStatus.availabilityAllRefreshRateMinutes-->
+        <schedule>every 1 minutes</schedule> <!-- MUST BE SYNCED WITH ParsingStatus.availabilityAllRefreshRateMinutes-->
     </cron>
     <cron>
         <url>/cron/parsecronjob?process=properties</url>
