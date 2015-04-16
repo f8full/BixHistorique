@@ -158,6 +158,8 @@ public class GetStatsResponse extends BaseResponse {
 
         mData.total_nb_availability_parse = mData.nb_complete_availability_parse + mData.nb_partial_availability_parse;
 
+        mData.availability_refresh_rate_minutes = ParsingStatus.availabilityAllRefreshRateMinutes;
+
         //Entity networkStat = datastore.prepare(new Query("__Stat_Kind__")).asSingleEntity();
     }
 
