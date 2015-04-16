@@ -141,7 +141,8 @@ public class ParseCronServlet extends HttpServlet{
                 parseData.putLatestUpdateTime(rawlatestUpdateMap.get(i), rawlatestUpdateMap.get(i + 1));
             }
 
-            int MAX_STATION_GAP = 60;   //One hour at 1 minutes parse interval
+            //using variables allows it to be adjusted later on
+            int MAX_STATION_GAP = ParsingStatus.availabilityCompleteRefreshRateMinutes / ParsingStatus.availabilityAllRefreshRateMinutes;
 
             long countSinceLastComplete = (Long) result.getProperty("countSinceLastComplete");
 
