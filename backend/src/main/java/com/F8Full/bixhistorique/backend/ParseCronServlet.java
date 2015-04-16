@@ -40,6 +40,15 @@ public class ParseCronServlet extends HttpServlet{
     //public final static String DATA_SOURCE_URL = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
     public final static String DATA_SOURCE_LICENSE = "N/A";
 
+    //AVAILABILITY_ALL_REFRESH_RATE_MINUTES MUST be synced with
+    /*<cron>
+        <url>/cron/parsecronjob?process=availability</url>
+        <description>If active, parse bike availability from data source every five minutes</description>
+        <schedule>every 5 minutes</schedule> <!-- MUST BE SYNCED WITH ParseCronServlet.AVAILABILITY_ALL_REFRESH_RATE_MINUTES-->
+    </cron>*/
+    public static int AVAILABILITY_ALL_REFRESH_RATE_MINUTES = 5; //how often, either complete or partial, a parse happens
+    public static int AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES = 60; // how far spaced in time two complete record must be recorded
+
     private Key mParsingStatusKey = null;
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp) /*throws IOException*/ {
@@ -142,7 +151,7 @@ public class ParseCronServlet extends HttpServlet{
             }
 
             //using variables allows it to be adjusted later on
-            int MAX_STATION_GAP = ParsingStatus.availabilityCompleteRefreshRateMinutes / ParsingStatus.availabilityAllRefreshRateMinutes;
+            int MAX_STATION_GAP = AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES / AVAILABILITY_ALL_REFRESH_RATE_MINUTES;
 
             long countSinceLastComplete = (Long) result.getProperty("countSinceLastComplete");
 
