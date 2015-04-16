@@ -2,6 +2,7 @@ package com.F8Full.bixhistorique.backend.datamodel;
 
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
@@ -13,21 +14,42 @@ import javax.jdo.annotations.PrimaryKey;
  */
 @PersistenceCapable
 public class ParsingStatus {
+
+    //Those STATIC properties are not stored in datastore.
+    //It's because they derive of something we don't have control over : the cron GAE scheduler
+    //Hence it MUST be synced with
+    /*<cron>
+        <url>/cron/parsecronjob?process=availability</url>
+        <description>If active, parse bike availability from data source every five minutes</description>
+        <schedule>every 5 minutes</schedule> <!-- MUST BE SYNCED WITH ParsingStatus.availabilityAllRefreshRateMinutes-->
+    </cron>*/
+
+    @NotPersistent
+    public static int availabilityAllRefreshRateMinutes = 5; //how often, either complete or partial, a parse happens
+    @NotPersistent
+    public static int availabilityCompleteRefreshRateMinutes = 60; // how far spaced in time two complete record must be recorded
+
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
     private String encodedKey;
 
+    //Nothing is indexed as there will be only one entity of this kind and it will always be
+    //retrieved by key -- see Utils.RetrieveUniqueKey.parsingStatus()
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private boolean parsing_active;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private int nb_complete_network_parsing;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private int nb_partial_network_parsing;
 
     @Persistent
+    @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private int nb_stationproperties_parsing;
 
     /*public String getEncodedKey() {
