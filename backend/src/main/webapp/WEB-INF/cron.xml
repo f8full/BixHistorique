@@ -12,7 +12,7 @@
     <cron>
         <url>/cron/activateparsingcronjob?activate=false</url>
         <description>After this job is called the parsing will NOT be active</description>
-        <schedule>30 of april 23:59</schedule>
+        <schedule>1 of may 02:59</schedule>
         <timezone>America/Montreal</timezone>
     </cron>
     <cron>
