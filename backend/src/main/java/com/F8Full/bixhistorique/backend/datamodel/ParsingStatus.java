@@ -25,7 +25,7 @@ public class ParsingStatus {
     </cron>*/
 
     @NotPersistent
-    public static int availabilityAllRefreshRateMinutes = 5; //how often, either complete or partial, a parse happens
+    public static int availabilityAllRefreshRateMinutes = 1; //how often, either complete or partial, a parse happens
     @NotPersistent
     public static int availabilityCompleteRefreshRateMinutes = 60; // how far spaced in time two complete record must be recorded
 
