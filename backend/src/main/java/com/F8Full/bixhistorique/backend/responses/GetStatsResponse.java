@@ -78,8 +78,14 @@ public class GetStatsResponse extends BaseResponse {
 
         boolean gotPartial = false;
         boolean gotComplete = false;
-        //let's retrieve twice as much records as the minimum should be (downtime) 24 record is two hours, let's get 30
-        for (Entity networkEntity : lastCompleteNetworkPreparedQuery.asIterable(FetchOptions.Builder.withLimit(30))) {
+
+        //let's retrieve twice as much records as the minimum should be
+        int safeNbEntitiesToGuaranteeComplete = ParsingStatus.availabilityCompleteRefreshRateMinutes / ParsingStatus.availabilityAllRefreshRateMinutes;
+        int safeMargin = safeNbEntitiesToGuaranteeComplete / 2;
+        safeNbEntitiesToGuaranteeComplete *= 2;
+        safeNbEntitiesToGuaranteeComplete += safeMargin;
+
+        for (Entity networkEntity : lastCompleteNetworkPreparedQuery.asIterable(FetchOptions.Builder.withLimit( safeNbEntitiesToGuaranteeComplete  ))) {
             boolean complete = (boolean) networkEntity.getProperty("complete");
             if (complete)
             {
