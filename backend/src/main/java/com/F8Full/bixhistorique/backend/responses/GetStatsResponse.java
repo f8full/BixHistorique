@@ -1,5 +1,6 @@
 package com.F8Full.bixhistorique.backend.responses;
 
+import com.F8Full.bixhistorique.backend.ParseCronServlet;
 import com.F8Full.bixhistorique.backend.datamodel.DataStats;
 import com.F8Full.bixhistorique.backend.datamodel.Network;
 import com.F8Full.bixhistorique.backend.datamodel.ParsingStatus;
@@ -80,7 +81,7 @@ public class GetStatsResponse extends BaseResponse {
         boolean gotComplete = false;
 
         //let's retrieve twice as much records as the minimum should be
-        int safeNbEntitiesToGuaranteeComplete = ParsingStatus.availabilityCompleteRefreshRateMinutes / ParsingStatus.availabilityAllRefreshRateMinutes;
+        int safeNbEntitiesToGuaranteeComplete = ParseCronServlet.AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES / ParseCronServlet.AVAILABILITY_ALL_REFRESH_RATE_MINUTES;
         int safeMargin = safeNbEntitiesToGuaranteeComplete / 2;
         safeNbEntitiesToGuaranteeComplete *= 2;
         safeNbEntitiesToGuaranteeComplete += safeMargin;
@@ -158,7 +159,7 @@ public class GetStatsResponse extends BaseResponse {
 
         mData.total_nb_availability_parse = mData.nb_complete_availability_parse + mData.nb_partial_availability_parse;
 
-        mData.availability_refresh_rate_minutes = ParsingStatus.availabilityAllRefreshRateMinutes;
+        mData.availability_refresh_rate_minutes = ParseCronServlet.AVAILABILITY_ALL_REFRESH_RATE_MINUTES;
 
         //Entity networkStat = datastore.prepare(new Query("__Stat_Kind__")).asSingleEntity();
     }
