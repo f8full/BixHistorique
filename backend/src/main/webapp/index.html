@@ -9,34 +9,6 @@
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 </head>
 <body role="document" style="padding-top: 70px;">
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="#">bixhistorique-2015</a>
-        </div>
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Documentation <b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="https://developers.google.com/appengine/docs/java/">Google App
-                            Engine</a></li>
-                        <li><a href="https://developers.google.com/appengine/docs/java/endpoints/">Google
-                            Cloud Endpoints</a></li>
-                        <li>
-                            <a href="https://github.com/GoogleCloudPlatform/gradle-appengine-templates/tree/master/HelloEndpoints">Connecting
-                                your Android application to this backend</a></li>
-                    </ul>
-                </li>
-                <li><a href="/_ah/api/explorer">Google Cloud Endpoints API Explorer</a></li>
-                <li><a href="https://console.developers.google.com">Google Developers Console</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
-
 <div class="container theme-showcase" role="main">
 
     <div class="jumbotron">
@@ -44,34 +16,16 @@
             <div class="col-lg-12">
                 <h1>bixhistorique-2015</h1>
 
-                <p>Parsing 'https://montreal.bixi.com/data/bikeStations.xml' every 5 minutes when parsing_active is true.
-                to set parsing_active to true, use the URL '/cron/activateparsingcronjob?activate=true' as an admin.
-                To set parsing_active to false, simply make a call to '/cron/activateparsingcronjob?activate=false'</p>
+                <p><i>Parsing 'https://montreal.bixi.com/data/bikeStations.xml' every 5 minutes since April 15th, 00:01 (to
+                November 15th, 23:59)</i></p>
+                <br/>
                 <p>For more stats about the stored data, including licensing, see <a
                         href="https://apis-explorer.appspot.com/apis-explorer/?base=https://bixhistorique-2015.appspot.com/_ah/api#p/bixHistorique2015/v1/bixHistorique2015.getStats">here</a>.</p>
-
-                <br/>
-
-                <p>To see the currently available API, navigate to Google Cloud Endpoints API Explorer or click <a
+                <p>To see the currently available API click <a
                             href="http://bixhistorique-2015.appspot.com/_ah/api/explorer">here</a>.</p>
-
-                <p>The source code of this application is available <a
-                        href="https://github.com/f8full/BixHistorique">on github</a>.</p>
-
                 <br/>
-
-                <p>
-                    <small>
-                        For more information about Google App Engine for Java, check out the <a
-                            href="https://developers.google.com/appengine/docs/java/">App Engine
-                        documentation</a>.<br/>
-                        To learn more about Google Cloud Endpoints, see <a
-                            href="https://developers.google.com/appengine/docs/java/endpoints/">Cloud
-                        Endpoints documentation</a>.<br/>
-                        If you'd like to access your generated Google Cloud Endpoints APIs directly,
-                        see the <a href="/_ah/api/explorer">Cloud Endpoints API Explorer</a>.
-                    </small>
-                </p>
+                <p>The source code of this web application is available <a
+                        href="https://github.com/f8full/BixHistorique">on github</a>.</p>
             </div>
         </div>
     </div>
