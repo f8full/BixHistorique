@@ -170,8 +170,10 @@ public class ParseCronServlet extends HttpServlet{
             //Go through all stations and checks if latestUpdateTime changed
             for (long stationId : parseData.getLatestUpdateMapKeySet())
             {
+                //Means a stationID been removed since last parse
                 if (curNetwork.stationPropertieTransientMap.get((int)stationId) == null){
-                    continue;   //This is weird
+                    parseData.removeStationIDKey(stationId);
+                    continue;
                 }
 
                 long previousLatest = parseData.getLatestUpdateTimeForStationId(stationId);
