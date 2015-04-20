@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
                                 //resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
 public class ParseCronServlet extends HttpServlet{
 
-    public final static String DATA_SOURCE_URL = "https://montreal.bixi.com/data/bikeStations.xml";
+    public final static String DATA_SOURCE_URL = "http://montreal.bixi.com/data/bikeStations.xml";
     //public final static String DATA_SOURCE_URL = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
     public final static String DATA_SOURCE_LICENSE = "N/A";
 
