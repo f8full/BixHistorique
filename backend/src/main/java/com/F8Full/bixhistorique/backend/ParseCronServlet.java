@@ -172,7 +172,7 @@ public class ParseCronServlet extends HttpServlet{
             {
                 //Means a stationID been removed since last parse
                 if (curNetwork.stationPropertieTransientMap.get((int)stationId) == null){
-                    parseData.removeStationIDKey(stationId);
+                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "station with id : " + stationId + "vanished.");
                     continue;
                 }
 
