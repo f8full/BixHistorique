@@ -61,6 +61,10 @@ public class LastParseData {
         this.latestUpdateTimeMap.put(stationId,timestamp);
     }
 
+    public void removeStationIDKey(long toRemove){
+        this.latestUpdateTimeMap.remove(toRemove);
+    }
+
     public Set<Long> getLatestUpdateMapKeySet()
     {
         return latestUpdateTimeMap.keySet();
