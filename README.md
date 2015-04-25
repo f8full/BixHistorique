@@ -22,22 +22,22 @@ The code is mainly in [ParseCronServlet]. It mainly contains two methods that ar
 
      private void processAvailability(Network curNetwork)
      private void processProperties(Network curNetwork)
-     
+
    - ####CRON tasks
 If you deploy the version in the master branch, by default it will be in a non parsing state. To activate it, you have to call a CRON URL as follow
 
     http://[localhost or deployed domain .appspot.com]
-    
-    
+
+
     /cron/activateparsingcronjob?activate=true
 
 Then, if you call either
 
     [..]/cron/parsecronjob?process=availability
 or
-    
+
     [..]/cron/parsecronjob?process=properties
-    
+
 The datasource will be parsed, processed if suitable and depending on the calling parameter, a new [Network] entity will be created in the datastore
 or a collection of [StationProperties]
 
@@ -73,8 +73,22 @@ On the deployed environment, calling those URLs is handled through CRON jobs def
         <timezone>America/Montreal</timezone>
     </cron>
     </cronentries>
-    
+
 In a local environment, you either have to manually call the URLs through your browser or setup your own cron requesting them for you.
+
+Note : the access control of the cron URL is defined in the [web.xml] file of the [WEB-INF] folder
+
+    ...
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>cron</web-resource-name>
+            <url-pattern>/cron/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+    ...
 
 Important : if you deploy, you have to do this 
 
@@ -119,20 +133,6 @@ Both are [JDO] anotated to be manipulated by the datastore.
 
 Let's dig first into the infrequent data, typically this is recorded once every 24 hours. Presented here edited for clarity
 
-    /**
-    * Created by F8Full on 2015-03-21.
-    * * This file is part of BixHistorique -- Backend
-    * This is a data class used to describe mostly stable properties of a bike station
-    * - Key : constructed from the string representation of the timestamp
-    * - ID (from XML source)
-    * - Name
-    * - Terminal name
-    * - Latitude and longitude as a GeoPt
-    * - Installed
-    * - Locked
-    * - Temporary
-    * - Public
-    */
     @PersistenceCapable //JDO annotation
     public class StationProperties {
     
@@ -172,15 +172,7 @@ Let's dig first into the infrequent data, typically this is recorded once every 
 
 Network retains mostly two maps by stationID of Bikes and Docks numbers
 
-    /**
-    * Created by F8Full on 2015-03-21.
-    * This file is part of BixHistorique -- Backend
-    * This is a data class describing the complete state of the Bixi network for a given timestamp
-    * - a Key : constructed with the string representation of the timestamp
-    * - a Date object representing the timestamp and used internally when processing queries
-    * - Two Maps, for properties and availability for a given stationID
-    */
-    @PersistenceCapable
+    @PersistenceCapable //JDO annotation
     public class Network {
 
     //Constructed from the timestamp
@@ -194,6 +186,9 @@ Network retains mostly two maps by stationID of Bikes and Docks numbers
     @Persistent
     private boolean complete;   //True if this is a complete bike network state record
 
+    @Persistent
+    private Key previousNetworkKey;
+
     @Persistent //REMOVED FROM INDEX to optimize index size, no later requests on those directly in datastore
     @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private Map<Integer, Integer> nbBikesByStationId;
@@ -202,9 +197,7 @@ Network retains mostly two maps by stationID of Bikes and Docks numbers
     @Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
     private Map<Integer, Integer> nbEmptyDocksByStationId;
 
-    @Persistent //REMOVED FROM INDEX to optimize index size, no later requests on those directly in datastore
-    //@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
-    private Key previousNetworkKey;
+
 
     //Filled at parsing time
     @NotPersistent  //Persisted separately in the 24h refresh rate job
@@ -224,4 +217,6 @@ Network retains mostly two maps by stationID of Bikes and Docks numbers
 [backend]:https://github.com/f8full/BixHistorique/tree/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend
 [ParseCronServlet]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/ParseCronServlet.java
 [cron.xml]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF/cron.xml
+[web.xml]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF/web.xml
+[WEB-INF]:https://github.com/f8full/BixHistorique/tree/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF
 [BIXI use terms]:https://montreal.bixi.com/conditions-utilisation
