@@ -129,8 +129,6 @@ Let's dig first into the infrequent data, typically this is recorded once every 
     * - Terminal name
     * - Latitude and longitude as a GeoPt
     * - Installed
-    * - InstallDate
-    * - RemovalDate
     * - Locked
     * - Temporary
     * - Public
@@ -173,7 +171,7 @@ Let's dig first into the infrequent data, typically this is recorded once every 
     boolean locked;
 
 Network retains mostly two maps by stationID of Bikes and Docks numbers
-    code
+
     /**
     * Created by F8Full on 2015-03-21.
     * This file is part of BixHistorique -- Backend
