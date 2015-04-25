@@ -5,7 +5,7 @@ You can see a deployed version at the following address [https://bixhistorique-2
 ### Licenses
 from getStats read API call metadata
 
-  - original data, not available despite my best effort to find it
+  - original data, not available despite my best effort reading [BIXI use terms]
   - API use : https://creativecommons.org/licenses/by/4.0/
   - API source code : http://opensource.org/licenses/MIT
 
@@ -224,3 +224,4 @@ Network retains mostly two maps by stationID of Bikes and Docks numbers
 [backend]:https://github.com/f8full/BixHistorique/tree/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend
 [ParseCronServlet]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/ParseCronServlet.java
 [cron.xml]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF/cron.xml
+[BIXI use terms]:https://montreal.bixi.com/conditions-utilisation
