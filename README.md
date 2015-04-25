@@ -1,6 +1,8 @@
 # BixHistorique
+Parsing ' and persisting of Montréal's public bikes systeme availability from https://montreal.bixi.com/data/bikeStations.xml'
 
-You can see a deployed version at the following address [https://bixhistorique-2015-demo.appspot.com/](https://bixhistorique-2015-demo.appspot.com/)
+
+You can see a deployed version doing it every minutes for two weeks in April 2015 at the following address [https://bixhistorique-2015-demo.appspot.com/](https://bixhistorique-2015-demo.appspot.com/)
 
 ### Licenses
 from getStats read API call metadata
