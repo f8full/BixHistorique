@@ -79,4 +79,7 @@ public class LastParseData {
         this.countSinceLastComplete = count;
     }
 
+    public boolean lastUpdatedContainsKey(long key){
+        return latestUpdateTimeMap.containsKey(key);
+    }
 }
