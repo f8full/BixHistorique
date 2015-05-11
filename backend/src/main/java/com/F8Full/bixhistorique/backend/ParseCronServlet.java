@@ -18,7 +18,6 @@ import com.google.appengine.api.datastore.Query;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +35,9 @@ import javax.servlet.http.HttpServletResponse;
                                 //resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
 public class ParseCronServlet extends HttpServlet{
 
-    public final static String DATA_SOURCE_URL = "http://montreal.bixi.com/data/bikeStations.xml";
+    //Using https because http page is misconfigured with a (!!) Cache-Control:max-age=604800 header
+    //leading to being inconsistently served the datasource by proxies along the way
+    public final static String DATA_SOURCE_URL = "https://montreal.bixi.com/data/bikeStations.xml";
     //public final static String DATA_SOURCE_URL = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
     public final static String DATA_SOURCE_LICENSE = "N/A";
 
@@ -132,102 +133,90 @@ public class ParseCronServlet extends HttpServlet{
         //Most common case (hopefully)
         if (result != null)
         {
-            LastParseData parseData = new LastParseData((Long)result.getProperty("timestamp"));
-
-            //Check if the source file timestamp is different from the last processed one
-            if (parseData.getTimestamp() == curNetwork.getTimestamp())
-            {
-                Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "unchanged Network -- Done");
-                return;
-            }
-
-            parseData.setEncodedKey(KeyFactory.keyToString(result.getKey())); //only one LastParseData entity
-
-            ArrayList<Long> rawlatestUpdateMap = (ArrayList)result.getProperty("latestUpdateTimeMap");
-
-            for (int i=0; i< rawlatestUpdateMap.size()-1; i+=2)
-            {
-                parseData.putLatestUpdateTime(rawlatestUpdateMap.get(i), rawlatestUpdateMap.get(i + 1));
-            }
-
-            //using variables allows it to be adjusted later on
-            int MAX_STATION_GAP = AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES / AVAILABILITY_ALL_REFRESH_RATE_MINUTES;
-
-            long countSinceLastComplete = (Long) result.getProperty("countSinceLastComplete");
-
-            boolean needCompleteRecord =  countSinceLastComplete > MAX_STATION_GAP;
-
-            Key previousNetworkKey = KeyFactory.createKey( Network.class.getSimpleName(),
-                    String.valueOf(parseData.getTimestamp()) );
-
-            Key resultNetworkKey = curNetwork.getKey();
-
-            //This network object will be persisted
-            Network resultNetwork = new Network(resultNetworkKey, previousNetworkKey);
-
             PersistenceManager pm = PMF.get().getPersistenceManager();
 
-            //Go through all stations and checks if latestUpdateTime changed
-            for (long stationId : parseData.getLatestUpdateMapKeySet())
-            {
-                //Means a stationID been removed since last parse
-                if (curNetwork.stationPropertieTransientMap.get((int)stationId) == null){
-                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.INFO, "station with id : " + stationId + "vanished.");
-                    continue;
-                }
+            try {
 
-                long previousLatest = parseData.getLatestUpdateTimeForStationId(stationId);
+                LastParseData parseData = pm.getObjectById(LastParseData.class, result.getKey());
+                //LastParseData parseData = new LastParseData((Long) result.getProperty("timestamp"));
 
-                long currentLatest = curNetwork.stationPropertieTransientMap.get((int)stationId).getTimestamp();
+                //Check if the source file timestamp is different from the last processed one
+                if(parseData.getTimestamp() != curNetwork.getTimestamp()) {
 
-                //time for a complete record OR some new data available for this station
-                if (needCompleteRecord || previousLatest != currentLatest)
-                {
-                    //Update it for next processing
-                    parseData.putLatestUpdateTime(stationId, currentLatest);
+                    //using variables allows it to be adjusted later on
+                    int MAX_STATION_GAP = AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES / AVAILABILITY_ALL_REFRESH_RATE_MINUTES;
 
-                    AvailabilityPair currAvailability = curNetwork.getAvailabilityForStation((int)stationId);
+                    long countSinceLastComplete = (Long) result.getProperty("countSinceLastComplete");
 
-                    boolean stationLocked = curNetwork.stationPropertieTransientMap.get((int)stationId).isLocked();
-                    boolean stationInstalled = curNetwork.stationPropertieTransientMap.get((int)stationId).isInstalled();
+                    boolean needCompleteRecord = countSinceLastComplete > MAX_STATION_GAP;
 
-                    if (!stationInstalled)
-                    {
-                        currAvailability = new AvailabilityPair(-1,-1);
+                    Key previousNetworkKey = KeyFactory.createKey(Network.class.getSimpleName(),
+                            String.valueOf(parseData.getTimestamp()));
+
+                    Key resultNetworkKey = curNetwork.getKey();
+
+                    //This network object will be persisted
+                    Network resultNetwork = new Network(resultNetworkKey, previousNetworkKey);
+
+                    //Go through all stations and checks if latestUpdateTime changed
+                    //for (long stationId : parseData.getLatestUpdateMapKeySet()) {
+                    for(int stationId : curNetwork.stationPropertieTransientMap.keySet()){
+
+                        long currentLatest = curNetwork.stationPropertieTransientMap.get(stationId).getTimestamp();
+                        long previousLatest = 0;
+
+                        if (!needCompleteRecord && parseData.lastUpdatedContainsKey(stationId)){
+
+                            previousLatest = parseData.getLatestUpdateTimeForStationId(stationId);
+                        }
+
+                        //time for a complete record OR some new data available for this station (or station wasn't here last parse)
+                        if (needCompleteRecord || previousLatest != currentLatest) {
+                            //Note : removed stations will leave their IDs in parseData, I deem it acceptable as it shouldn't happen much
+
+                            //Update it for next processing
+                            parseData.putLatestUpdateTime(stationId, currentLatest);
+
+                            AvailabilityPair currAvailability = curNetwork.getAvailabilityForStation( stationId);
+
+                            boolean stationLocked = curNetwork.stationPropertieTransientMap.get(stationId).isLocked();
+                            boolean stationInstalled = curNetwork.stationPropertieTransientMap.get(stationId).isInstalled();
+
+                            if (!stationInstalled) {
+                                currAvailability = new AvailabilityPair(-1, -1);
+                            } else if (stationLocked) {
+                                //A locked station don't gives out bikes but bikes can be docked to it
+                                currAvailability = new AvailabilityPair(-1, currAvailability.nbEmptyDocks);
+                            }
+
+                            resultNetwork.putAvailabilityforStationId(stationId, currAvailability);
+                        }
                     }
-                    else if (stationLocked)
-                    {
-                        //A locked station don't gives out bikes but bikes can be docked to it
-                        currAvailability = new AvailabilityPair(-1, currAvailability.nbEmptyDocks);
+
+                    parseData.setTimestamp(curNetwork.getTimestamp());
+
+                    if (needCompleteRecord) {
+                        parseData.setCountSinceLastComplete(0);
+                        resultNetwork.setComplete();
+                        addCompleteToParsingStatus();
+                    } else {
+                        parseData.setCountSinceLastComplete((int) countSinceLastComplete + 1);
+                        addPartialToParsingStatus();
                     }
 
-                    resultNetwork.putAvailabilityforStationId((int)stationId, currAvailability);
+
+                    pm.makePersistent(resultNetwork);
+
+                    /*if (mParsingStatusKey != null) {
+                        ParsingStatus parsingStatus = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
+                        pm.makePersistent(parsingStatus);
+                    }*/
+                }
+                else{
+                    Logger.getLogger(ParseCronServlet.class.getName()).log(Level.WARNING, "same Network timestamp -- Done");
                 }
             }
-
-            parseData.setTimestamp(curNetwork.getTimestamp());
-
-            if(needCompleteRecord) {
-                parseData.setCountSinceLastComplete(0);
-                resultNetwork.setComplete();
-                addCompleteToParsingStatus();
-            }
-            else {
-                parseData.setCountSinceLastComplete((int) countSinceLastComplete + 1);
-                addPartialToParsingStatus();
-            }
-
-            try{
-                pm.makePersistent(resultNetwork);
-                pm.makePersistent(parseData);
-
-                if(mParsingStatusKey != null){
-                    ParsingStatus parsingStatus  = pm.getObjectById(ParsingStatus.class, mParsingStatusKey);
-                    pm.makePersistent(parsingStatus);
-                }
-
-
-            }finally {
+            finally {
                 pm.close();
             }
 
