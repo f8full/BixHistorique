@@ -16,16 +16,36 @@
             <div class="col-lg-12">
                 <h1>bixhistorique-2015</h1>
 
-                <p><i>Parsing 'https://montreal.bixi.com/data/bikeStations.xml' every <b>5 minutes</b> since April 15th, 00:01 (to
-                November 15th, 23:59)</i></p>
-                <br/>
+                <p><i>Parsed and recorded 'https://montreal.bixi.com/data/bikeStations.xml' every <b>5 minutes</b> between April 15th, 00:01 and <strike>
+                November 15th, 23:59</strike> September 29th, 08:24*, Montréal time. <br/>Data before May 11th, 2015 13h13 is unreliable**</i></p>
                 <p>For more stats about the stored data, including licensing, see <a
                         href="_ah/api/explorer#p/bixHistorique2015/v1/bixHistorique2015.getStats">here</a>.</p>
                 <p>To see the currently available API click <a
                         href="_ah/api/explorer#p">here</a>.</p>
                 <br/>
+
+                <p>For finer, down to the minute data sets served through the same API, see URLs for each month</p>
+                    <ul>
+                            <li><a href="https://bixhistorique-2015-april.appspot.com"> April</a> - no dataset (stalled data)** ~26000 parse </li>
+                            <li><a href="https://bixhistorique-2015-may.appspot.com"> May</a> - partial dataset (stalled data)** </li>
+                            <li><a href="https://bixhistorique-2015-june.appspot.com"> June</a> - <b>complete</b> dataset 42229 parse</li>
+                            <li><a href="https://bixhistorique-2015-july.appspot.com"> July</a> - <b>complete</b> dataset 43678 parse</li>
+                            <li><a href="https://bixhistorique-2015-august.appspot.com"> August</a> - <b>complete</b> dataset 43752 parse</li>
+                            <li><a href="https://bixhistorique-2015-september.appspot.com"> September</a> - truncated dataset 40056 parse*</li>
+                            <li><strike><a href="https://bixhistorique-2015-october.appspot.com"> October</a></strike> - empty* </li>
+                            <li><strike><a href="https://bixhistorique-2015-november.appspot.com"> November</a></strike> - empty* </li>
+                    </ul>
+
+
                 <p>The source code of this web application is available <a
                         href="https://github.com/f8full/BixHistorique">on github</a>.</p>
+
+
+                <p><i>*bike system backend was updated on September 29th, terminating any further availability recording.</i></p>
+                <p><i>**bike system backend was misconfigured. Data served over http presented incorrect cache-control headers. Workaround deployed
+                    on <b> May 11th, 2015 13h13 EST</b></i></p>
+                <p><i>As of February 25th, 2016 serving over http is fixed with correct no-cache, no-store, must-revalidate, max-age=0, proxy-revalidate, no-transform headers.</i></p>
+                <br/>
             </div>
         </div>
     </div>
