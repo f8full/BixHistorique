@@ -211,7 +211,7 @@ public class SourceURL_XMLParser extends DefaultHandler{
         {
             mNetworkToReturn.putAvailabilityforStationId(mTempStationProperties.getId(),new AvailabilityPair<>(mTempNbBikes, Integer.parseInt(mBufferedString.toString())));
         }
-        else if (_element.equalsIgnoreCase("latestUpdateTime"))
+        else if (_element.equalsIgnoreCase("lastUpdateTime"))
         {
             //Sax guarantees parsing occurs in order, because this function MUST be called after setID()
 
