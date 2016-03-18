@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -91,8 +93,8 @@ public class SourceURL_XMLParser extends DefaultHandler{
 
             parser.parse(mIs, this);
 
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            e.printStackTrace();
+        } catch (ParserConfigurationException | SAXException | IOException | IllegalArgumentException e) {
+            Logger.getLogger(SourceURL_XMLParser.class.getName()).log(Level.SEVERE, "Low level error in parser. Are your XML tags case sensitive ?" + e.toString());
         }
 
         return mNetworkToReturn;
@@ -129,10 +131,10 @@ public class SourceURL_XMLParser extends DefaultHandler{
 
         if (_elementName.equalsIgnoreCase("stations"))
         {
-            //TODO: validate XML feed version here and throw exception
+            //TODO: validate XML feed version here and throw exception with sensible message
             //extract timestamp of data source and builds key from it
             mNetworkToReturn.setTimestamp( KeyFactory.createKey( Network.class.getSimpleName(),
-                                                            _attributes.getValue("lastUpdate") ) );
+                                                            _attributes.getValue("LastUpdate") ) );
         }
         else if (_elementName.equalsIgnoreCase("station"))
         {
