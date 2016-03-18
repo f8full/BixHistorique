@@ -46,8 +46,12 @@ public class ParseCronServlet extends HttpServlet{
         <url>/cron/parsecronjob?process=availability</url>
         <description>If active, parse bike availability from data source every five minutes</description>
         <schedule>every 5 minutes</schedule> <!-- MUST BE SYNCED WITH ParseCronServlet.AVAILABILITY_ALL_REFRESH_RATE_MINUTES-->
-    </cron>*/
+    </cron>
+        in cron.xml
+    */
     public static int AVAILABILITY_ALL_REFRESH_RATE_MINUTES = 1; //how often, either complete or partial, a parse happens
+
+    public static int AVAILABILITY_ALL_REFRESH_RATE_MINUTES = 5; //how often, either complete or partial, a parse happens
     public static int AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES = 60; // how far spaced in time two complete record must be recorded
 
     private Key mParsingStatusKey = null;
