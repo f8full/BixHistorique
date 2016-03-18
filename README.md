@@ -2,7 +2,7 @@
 Parsing ' and persisting of Montréal's public bikes systeme availability from https://montreal.bixi.com/data/bikeStations.xml'
 
 
-You can see a deployed version doing it every minutes for two weeks in April 2015 at the following address [https://bixhistorique-2015-demo.appspot.com/](https://bixhistorique-2015-demo.appspot.com/)
+You can see a deployed version doing it every minutes for two weeks in April 2015 at the following address [https://bixhistorique-2016-demo.appspot.com/](https://bixhistorique-2016-demo.appspot.com/)
 
 ### Licenses
 from getStats read API call metadata
@@ -210,13 +210,13 @@ Network retains mostly two maps by stationID of Bikes and Docks numbers
 ### Functioning
 
 
-[StationProperties]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/datamodel/StationProperties.java
-[Network]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/datamodel/Network.java
+[StationProperties]:https://github.com/f8full/BixHistorique/blob/bixhistorique-2016-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/datamodel/StationProperties.java
+[Network]:https://github.com/f8full/BixHistorique/blob/bixhistorique-2016-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/datamodel/Network.java
 [JDO]:https://cloud.google.com/appengine/docs/java/datastore/jdo/overview-dn2
 [Android Studio]:http://developer.android.com/tools/studio/index.html
-[backend]:https://github.com/f8full/BixHistorique/tree/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend
-[ParseCronServlet]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/ParseCronServlet.java
-[cron.xml]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF/cron.xml
-[web.xml]:https://github.com/f8full/BixHistorique/blob/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF/web.xml
-[WEB-INF]:https://github.com/f8full/BixHistorique/tree/BixHistorique-2015-demok/backend/src/main/webapp/WEB-INF
+[backend]:https://github.com/f8full/BixHistorique/tree/bixhistorique-2016-demok/backend/src/main/java/com/F8Full/bixhistorique/backend
+[ParseCronServlet]:https://github.com/f8full/BixHistorique/blob/bixhistorique-2016-demok/backend/src/main/java/com/F8Full/bixhistorique/backend/ParseCronServlet.java
+[cron.xml]:https://github.com/f8full/BixHistorique/blob/bixhistorique-2016-demok/backend/src/main/webapp/WEB-INF/cron.xml
+[web.xml]:https://github.com/f8full/BixHistorique/blob/bixhistorique-2016-demok/backend/src/main/webapp/WEB-INF/web.xml
+[WEB-INF]:https://github.com/f8full/BixHistorique/tree/bixhistorique-2016-demok/backend/src/main/webapp/WEB-INF
 [BIXI use terms]:https://montreal.bixi.com/conditions-utilisation

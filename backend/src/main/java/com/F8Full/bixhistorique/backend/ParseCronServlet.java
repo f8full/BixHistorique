@@ -37,7 +37,7 @@ public class ParseCronServlet extends HttpServlet{
 
     //Using https because http page is misconfigured with a (!!) Cache-Control:max-age=604800 header
     //leading to being inconsistently served the datasource by proxies along the way
-    public final static String DATA_SOURCE_URL = "https://montreal.bixi.com/data/bikeStations.xml";
+    public final static String DATA_SOURCE_URL = "http://montreal.bixi.com/data/bikeStations.xml";
     //public final static String DATA_SOURCE_URL = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
     public final static String DATA_SOURCE_LICENSE = "N/A";
 
