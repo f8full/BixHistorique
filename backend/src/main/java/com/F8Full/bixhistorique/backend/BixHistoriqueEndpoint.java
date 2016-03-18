@@ -15,7 +15,7 @@ import com.google.api.server.spi.config.ApiNamespace;
 /**
  * An endpoint class we are exposing
  */
-@Api(name = "bixHistorique2015", version = "v1", description = "This API provides historical Montréal bike network status data for 2015 season",
+@Api(name = "data", version = "v1", description = "This API provides historical Montréal bike network status data",
         namespace = @ApiNamespace(ownerDomain = "backend.bixhistorique.F8Full.com",
                 ownerName = "backend.bixhistorique.F8Full.com", packagePath = ""))
 public class BixHistoriqueEndpoint {
