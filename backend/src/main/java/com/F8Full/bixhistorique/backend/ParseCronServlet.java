@@ -50,8 +50,6 @@ public class ParseCronServlet extends HttpServlet{
         in cron.xml
     */
     public static int AVAILABILITY_ALL_REFRESH_RATE_MINUTES = 1; //how often, either complete or partial, a parse happens
-
-    public static int AVAILABILITY_ALL_REFRESH_RATE_MINUTES = 5; //how often, either complete or partial, a parse happens
     public static int AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES = 60; // how far spaced in time two complete record must be recorded
 
     private Key mParsingStatusKey = null;
