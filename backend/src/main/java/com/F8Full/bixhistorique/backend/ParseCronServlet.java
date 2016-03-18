@@ -37,7 +37,16 @@ public class ParseCronServlet extends HttpServlet{
 
     //Using https because http page is misconfigured with a (!!) Cache-Control:max-age=604800 header
     //leading to being inconsistently served the datasource by proxies along the way
-    public final static String DATA_SOURCE_URL = "https://montreal.bixi.com/data/bikeStations.xml";
+    public final static String DATA_SOURCE_URL = "http://montreal.bixi.com/data/bikeStations.xml";
+    //////////////////////////////////////
+    //11 Mars 2016. Bixi went json : https://secure.bixi.com/data/stations.json
+    //And, for some reason, httpS still #facepalm
+    //https://secure.bixi.com/data/stations.json
+    //12 Mars 2016. 404 is gone. XML is back. New flavor of weirdness, Bixi restored XML source feed, but in an old format, lacking
+    //a <latestUpdateTime>1427152576617</latestUpdateTime> tag in each station.
+    //17 Mars 2016. The lacking field is back !
+
+    ///////////////////////////////////////
     //public final static String DATA_SOURCE_URL = "http://www.capitalbikeshare.com/data/stations/bikeStations.xml";
     public final static String DATA_SOURCE_LICENSE = "N/A";
 
@@ -46,7 +55,9 @@ public class ParseCronServlet extends HttpServlet{
         <url>/cron/parsecronjob?process=availability</url>
         <description>If active, parse bike availability from data source every five minutes</description>
         <schedule>every 5 minutes</schedule> <!-- MUST BE SYNCED WITH ParseCronServlet.AVAILABILITY_ALL_REFRESH_RATE_MINUTES-->
-    </cron>*/
+    </cron>
+    in cron.xml
+    */
     public static int AVAILABILITY_ALL_REFRESH_RATE_MINUTES = 5; //how often, either complete or partial, a parse happens
     public static int AVAILABILITY_COMPLETE_REFRESH_RATE_MINUTES = 60; // how far spaced in time two complete record must be recorded
 
